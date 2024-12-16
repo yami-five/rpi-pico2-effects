@@ -95,11 +95,11 @@ void plasma(uint32_t t)
 
 void init_fire()
 {
-    for (uint16_t i=0;i<HEIGHT_DISPLAY;i++)
+    for (uint16_t i=0;i<WIDTH_DISPLAY;i++)
     {
-        fire_lut1[i]=(i+2)%HEIGHT_DISPLAY;
-        fire_lut1[i]=(i+4)%HEIGHT_DISPLAY;
-        fire_lut1[i]=(i+6)%HEIGHT_DISPLAY;
+        fire_lut1[i]=(i+WIDTH_DISPLAY)%WIDTH_DISPLAY;
+        fire_lut2[i]=(i+1)%WIDTH_DISPLAY;
+        fire_lut3[i]=i%WIDTH_DISPLAY;
     }
     uint8_t line[320*240*2];
     for (uint16_t i=0; i<HEIGHT_DISPLAY; i++)
@@ -128,7 +128,6 @@ void init_fire()
 
 void draw_fire()
 {
-    uint64_t start_time = time_us_64();
     uint8_t line[320*240*2];
     uint16_t fire_floor=HEIGHT_DISPLAY-1;
     for (uint16_t j=0; j<WIDTH_DISPLAY; j++)
@@ -142,18 +141,19 @@ void draw_fire()
     }
     for (uint16_t y=0; y<HEIGHT_DISPLAY-1; y++)
     {
-        uint32_t yp2modhmw=fire_lut1[y]*WIDTH_DISPLAY;
-        uint32_t yp4modhmw=fire_lut2[y]*WIDTH_DISPLAY;
-        uint32_t yp6modhmw=fire_lut3[y]*WIDTH_DISPLAY;
+        uint64_t start_time = time_us_64();
+        uint32_t yp2modhmw=((y+2)%HEIGHT_DISPLAY)*WIDTH_DISPLAY;
+        uint32_t yp4modhmw=((y+4)%HEIGHT_DISPLAY)*WIDTH_DISPLAY;
+        uint32_t yp6modhmw=((y+6)%HEIGHT_DISPLAY)*WIDTH_DISPLAY;
         for (uint16_t x=0; x<WIDTH_DISPLAY; x++)
         {
             uint32_t line_adr=x*HEIGHT_DOUBLED;
-            uint16_t xmodw=x%WIDTH_DISPLAY;
+            uint16_t xmodw=fire_lut3[x];
             uint8_t color_index1=(
                 (
-                    fire_arr[yp2modhmw+((x+WIDTH_DISPLAY)%WIDTH_DISPLAY)]
+                    fire_arr[yp2modhmw+fire_lut1[x]]
                     +fire_arr[yp4modhmw+xmodw]
-                    +fire_arr[yp2modhmw+((x+1)%WIDTH_DISPLAY)]
+                    +fire_arr[yp2modhmw+fire_lut2[x]]
                     +fire_arr[yp6modhmw+xmodw]
                 )/4
             )%32;
@@ -162,24 +162,23 @@ void draw_fire()
             uint16_t y2=y*2;
             line[line_adr+y2+1]=color&0xff;
             line[line_adr+y2]=(color>>8)&0xff;
-        } 
+        }
+        uint64_t end_time = time_us_64();
+        uint64_t duration_us = end_time - start_time;
+        // divmod_result_t div_result = hw_divider_divmod_u32(duration_us,1000);
+        // duration_us=to_quotient_u32(div_result);
+        int x=duration_us;
     }
-    uint64_t end_time = time_us_64();
-    uint64_t duration_us = end_time - start_time;
-    divmod_result_t div_result = hw_divider_divmod_u32(duration_us,1000);
-    duration_us=to_quotient_u32(div_result);
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
     DEV_SPI_Write_nByte(line,320*240*2);
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 static int16_t sin_lut[LUT_SIZE];
-unsigned char fire_arr[76800]={};
-static uint16_t fire_lut1[240];
-static uint16_t fire_lut2[240];
-static uint16_t fire_lut3[240];
-static uint16_t fire_lut4[320];
-static uint16_t fire_lut5[320];
+uint8_t fire_arr[76800];
+static uint16_t fire_lut1[320];
+static uint16_t fire_lut2[320];
+static uint16_t fire_lut3[320];
 const uint16_t palette[16]=
 {
     0x0000,
