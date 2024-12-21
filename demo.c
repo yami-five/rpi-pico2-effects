@@ -36,7 +36,7 @@ int main(void)
     // /*2.Drawing on the image*/
 
     init_fire();
-    // uint32_t t=0;
+    uint32_t t=0;
     // uint32_t screen_size=320*240;
     init_sin_lut();
     // uint16_t color=0x0000;

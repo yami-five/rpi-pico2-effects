@@ -51,6 +51,9 @@
         "lcd_2in.h": "c",
         "rand.h": "c",
         "float.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "math.h": "c",
+        "sync.h": "c",
+        "random": "c"
     }
 }

@@ -1,75 +1,171 @@
 #include "rastrizer.h"
-// function draw_model(p,qt,vertices,vt,vm,faces,f,tc,uv,textures,calc_light,tex_size,fast,tsts)
-//     for i=1,3*faces,3 do
-//         local a,b,c,xab,yab,zab,xac,yac,zac,nv,l_dir,l_cos,l_int;
-//         a,b,c,l_int=f[i],f[i+1],f[i+2],0.9;
-//         if(calc_light==true) then
-//             -- flat shading
-//             -- normal vector
-//             xab,yab,zab,xac,yac,zac=vm[b*3+1]-vm[a*3+1],vm[b*3+2]-vm[a*3+2],vm[b*3+3]-vm[a*3+3],vm[c*3+1]-vm[a*3+1],vm[c*3+2]-vm[a*3+2],vm[c*3+3]-vm[a*3+3]
-//             nv={yab*zac-zab*yac,zab*xac-xab*zac,xab*yac-yab*xac}
-//             vec_len=v3_len({nv[1],nv[2],nv[3]})
-//             nv[1],nv[2],nv[3]=nv[1]/vec_len,nv[2]/vec_len,nv[3]/vec_len
-//             nv_len=v3_len(nv)
-//             -- light direction
-//             local tx,ty,tz=(vm[a*3+1]+vm[b*3+1]+vm[c*3+1])/3,(vm[a*3+2]+vm[b*3+2]+vm[c*3+2])/3,(vm[a*3+3]+vm[b*3+3]+vm[c*3+3])/3
-//             l_dir={50-tx,50-ty,50-tz}
-//             l_len=v3_len(l_dir)
-//             -- cos
-//             l_dir_nv=v3_len({l_dir[1]-nv[1],l_dir[2]-nv[2],l_dir[3]-nv[3]})
-//             x=nv_len*nv_len+l_len*l_len-l_dir_nv*l_dir_nv
-//             y=l_len*nv_len*2
-//             l_cos=x/y
-//             l_int=max(0.1,l_cos)
-//         end
-//         local tex_i=1
-//         if #textures==6 then tex_i=flr(i/3)%6+1 end
-//         tric(
-//             vt[a*3+1],
-//             vt[a*3+2],
-//             vt[b*3+1],
-//             vt[b*3+2],
-//             vt[c*3+1],
-//             vt[c*3+2],
-//             {tc[uv[i]*2+1],tc[uv[i]*2+2]},{tc[uv[i+1]*2+1],tc[uv[i+1]*2+2]},{tc[uv[i+2]*2+1],tc[uv[i+2]*2+2]},l_int,tex_size,textures[tex_i],fast,tsts)
-//     end
-// end
-// void draw_cube(p)
-// 	local qt,vertices,faces,vt,vm=t*0.01,8,12,{},{}
-// 	local v=split("0.35,0.35,-0.35,0.35,-0.35,-0.35,0.35,0.35,0.35,0.35,-0.35,0.35,-0.35,0.35,-0.35,-0.35,-0.35,-0.35,-0.35,0.35,0.35,-0.35,-0.35,0.35")
-// 	local f=split("0,2,4,3,7,2,7,5,6,5,7,1,1,3,0,5,1,4,2,6,4,7,6,2,5,4,6,7,3,1,3,2,0,1,0,4")
-//     local tc=split("1.0,0.0,0.0,1.0,0.0,0.0,1.0,1.0")
-//     local uv=split("2,1,0,2,1,0,1,3,2,0,2,3,2,1,0,1,3,2,1,3,0,1,3,0,3,0,2,2,1,3,1,3,0,3,0,2")
-//     for j=1,vertices*3,3 do
-//         local x,y,z=v[j],v[j+1],v[j+2];
-//         y,z=rotate(y,z,qt);
-//         x,z=rotate(x,z,qt*1.5);
-//         x,y=inf(qt+p,x,y)
-//         y-=1
-//         add(vm,x);
-//         add(vm,y);
-//         add(vm,z);
-//         z=z+5;
-//         x=x*96/z+64;
-//         y=y*96/z+64;
-//         vt[j],vt[j+1],vt[j+1]=flr(x),flr(y),flr(z);
-//     end
-//     draw_model(p,qt,vertices,vt,vm,faces,f,tc,uv,{tex},true,16,false,256)
-// end
+#include <math.h>
 
-typedef struct
-{
-    uint16_t diffuse;
-    uint16_t * texture;
-} Material;
+#define FOCAL_LENGTH 90
+#define WIDTH_DISPLAY 320
+#define HEIGHT_DISPLAY 240
+#define WIDTH_DOUBLED 640
+#define HEIGHT_DOUBLED 480
+#define ARRAY_SIZE 153600
+#define WIDTH_HALF 160
+#define HEIGHT_HALF 120
+#define FIRE_FLOOR_ADR 76480
+#define SCALE_FACTOR 10000
+#define PI 3.141592653589793
 
-typedef struct 
+float fast_sqrt(float x)
 {
-    uint16_t verticesCounter;
-    uint16_t facesCounter;
-    uint16_t * vertices;
-    uint16_t * faces;
-    uint16_t * texture_coords;
-    uint16_t * uv;
-    Material * mat;
-} Mesh;
+    float y = x;
+    int i = *(int *)&y;
+    i = (i + 0x3f800000) >> 1;
+    y = *(float *)&i;
+    y = (y + x / y) * 0.5f;
+    return y;
+}
+
+int vector3_length(int vector[3])
+{
+    return fast_sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+}
+
+void normalize_vector(int *vector3[3])
+{
+    int vectorLength = vector3_length(vector3);
+    for (uint8_t i = 0; i < 3; i++)
+        *vector3[i] /= vectorLength;
+}
+
+int *triangle_center(int triangle[9])
+{
+    int center[3] =
+        {
+            (triangle[0] + triangle[3] + triangle[6]) / 3,
+            (triangle[1] + triangle[4] + triangle[7]) / 3,
+            (triangle[2] + triangle[5] + triangle[8]) / 3};
+    return center;
+}
+
+void rotate(int16_t *x, uint16_t *y, uint32_t t)
+{
+    float c = cos(t);
+    float s = sin(t);
+    uint8_t temp_x = (uint16_t)(c * *x - s * *y);
+    uint8_t temp_y = (uint16_t)(c * *x + s * *y);
+    x = temp_x;
+    y = temp_y;
+}
+
+
+bool checkIfTriangleVisible(int triangle[6])
+{
+    int e1x=triangle[2]-triangle[0];
+    int e1y=triangle[3]-triangle[1];
+    int e2x=triangle[4]-triangle[0];
+    int e2y=triangle[5]-triangle[1];
+    return (e1x*e2y-e1y*e2x)>=0;
+}
+
+void tri(int triangle[6], Material *mat, int lightDistance)
+{
+
+}
+
+void draw_model(Mesh *mesh, uint32_t t)
+{
+    uint16_t verticesCounter = mesh->verticesCounter;
+    int verticesModified[verticesCounter];
+    int verticesOnScreen[(verticesCounter * 2) / 3];
+    for (uint16_t i = 0; i < verticesCounter; i += 3)
+    {
+        // calculates vertex coords in 3D space
+        int x = mesh->vertices[i];
+        int y = mesh->vertices[i + 1];
+        int z = mesh->vertices[i + 2];
+        rotate(&y, &z, t);
+        rotate(&y, &z, t);
+        verticesModified[i] = x;
+        verticesModified[i + 1] = y;
+        verticesModified[i + 2] = z;
+        // calculates vertex coords on the screen
+        z += 5;
+        x = ((x * FOCAL_LENGTH << 10) / z) >> 10 + HEIGHT_HALF;
+        y = ((y * FOCAL_LENGTH << 10) / z) >> 10 + HEIGHT_HALF;
+        verticesOnScreen[i] = x;
+        verticesOnScreen[i + 1] = y;
+    }
+    int distancesFromLigth[mesh->facesCounter / 3];
+    // flat shading
+    for (uint16_t i = 1; mesh->facesCounter; i += 3)
+    {
+        uint16_t a = mesh->faces[i];
+        uint16_t b = mesh->faces[i + 1];
+        uint16_t c = mesh->faces[i + 2];
+        int triangleOnScreen[6] =
+        {
+            verticesOnScreen[a * 3],
+            verticesOnScreen[a * 3 + 1],
+            verticesOnScreen[b * 3],
+            verticesOnScreen[b * 3 + 1],
+            verticesOnScreen[c * 3],
+            verticesOnScreen[c * 3 + 1]
+        };
+        if(!checkIfTriangleVisible(triangleOnScreen))
+            continue;
+        // normal vector
+        int xab = (verticesModified[b * 3] << 10) - (verticesModified[a * 3] << 10);
+        int yab = (verticesModified[b * 3 + 1] << 10) - (verticesModified[a * 3 + 1] << 10);
+        int zab = (verticesModified[b * 3 + 2] << 10) - (verticesModified[a * 3 + 2] << 10);
+        int xac = (verticesModified[c * 3] << 10) - (verticesModified[a * 3] << 10);
+        int yac = (verticesModified[c * 3 + 1] << 10) - (verticesModified[a * 3 + 1] << 10);
+        int zac = (verticesModified[c * 3 + 2] << 10) - (verticesModified[a * 3 + 2] << 10);
+        int normalVector[3] =
+            {
+                (yab * zac - zab * yac) >> 10,
+                (zab * xac - xab * zac) >> 10,
+                (xab * yac - yab * xac) >> 10};
+        normalize_vector(&normalVector);
+        int normalVectorLength = vector3_length(normalVector);
+        // light direction
+        int triangle[9] =
+            {
+                verticesModified[a * 3],
+                verticesModified[a * 3 + 1],
+                verticesModified[a * 3 + 2],
+                verticesModified[b * 3],
+                verticesModified[b * 3 + 1],
+                verticesModified[b * 3 + 2],
+                verticesModified[c * 3],
+                verticesModified[c * 3 + 1],
+                verticesModified[c * 3 + 2],
+            };
+        int center[3] = triangle_center(triangle);
+        int lightDirection[3] =
+            {
+                50 - center[0],
+                50 - center[1],
+                50 - center[2]};
+        int lightLength = vector3_length(lightDirection);
+        // light distance
+        int vector[3] =
+            {
+                lightDirection[0] - normalVector[0],
+                lightDirection[1] - normalVector[1],
+                lightDirection[2] - normalVector[2]};
+        int lightDirectionMinusNormalVector = vector3_length(vector);
+        int x = normalVectorLength * normalVectorLength + lightLength * lightLength - lightDirectionMinusNormalVector * lightDirectionMinusNormalVector;
+        int y = (lightLength * normalVectorLength) * 2;
+        int lightDistance = x / y;
+        if (lightDistance < 0)
+            lightDistance = 0;
+
+        int triangleOnScreen[6] =
+            {
+                verticesOnScreen[a * 3],
+                verticesOnScreen[a * 3 + 1],
+                verticesOnScreen[b * 3],
+                verticesOnScreen[b * 3 + 1],
+                verticesOnScreen[c * 3],
+                verticesOnScreen[c * 3 + 1]};
+        tri(triangleOnScreen, mesh->mat, lightDistance);
+    }
+}
