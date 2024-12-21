@@ -50,6 +50,7 @@
         "dev_config.h": "c",
         "lcd_2in.h": "c",
         "rand.h": "c",
-        "float.h": "c"
+        "float.h": "c",
+        "functional": "c"
     }
 }

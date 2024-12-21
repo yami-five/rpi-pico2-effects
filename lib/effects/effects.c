@@ -48,7 +48,7 @@ void plasma(uint32_t t)
 {
     // uint64_t start_time = time_us_64();
     float fst=fast_sin(t*0.1f);
-    uint8_t line[320*240*2];
+    uint8_t line[ARRAY_SIZE];
     
     for (uint16_t i=0; i<WIDTH_DISPLAY; i+=2)
     {
@@ -89,7 +89,7 @@ void plasma(uint32_t t)
     // duration_us=to_quotient_u32(div_result);
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
-    DEV_SPI_Write_nByte(line,320*240*2);
+    DEV_SPI_Write_nByte(line,ARRAY_SIZE);
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 
@@ -101,7 +101,7 @@ void init_fire()
         fire_lut2[i]=(i+1)%WIDTH_DISPLAY;
         fire_lut3[i]=i%WIDTH_DISPLAY;
     }
-    uint8_t line[320*240*2];
+    uint8_t line[ARRAY_SIZE];
     for (uint16_t i=0; i<HEIGHT_DISPLAY; i++)
     {
         for (uint16_t j=0; j<WIDTH_DISPLAY; j++)
@@ -122,13 +122,13 @@ void init_fire()
     }
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
-    DEV_SPI_Write_nByte(line,320*240*2);
+    DEV_SPI_Write_nByte(line,ARRAY_SIZE);
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 
 void draw_fire()
 {
-    uint8_t line[320*240*2];
+    uint8_t line[ARRAY_SIZE];
     uint16_t fire_floor=HEIGHT_DISPLAY-1;
     for (uint16_t j=0; j<WIDTH_DISPLAY; j++)
     {
@@ -171,7 +171,7 @@ void draw_fire()
     }
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
-    DEV_SPI_Write_nByte(line,320*240*2);
+    DEV_SPI_Write_nByte(line,ARRAY_SIZE);
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 static int16_t sin_lut[LUT_SIZE];

@@ -1,0 +1,2 @@
+struct material;
+struct mesh;
