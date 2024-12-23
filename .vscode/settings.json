@@ -54,6 +54,7 @@
         "functional": "c",
         "math.h": "c",
         "sync.h": "c",
-        "random": "c"
+        "random": "c",
+        "rasterizer.h": "c"
     }
 }

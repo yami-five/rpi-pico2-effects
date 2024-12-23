@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 typedef struct
 {
     uint16_t diffuse;
@@ -8,7 +10,7 @@ typedef struct
 {
     uint16_t verticesCounter;
     uint16_t facesCounter;
-    uint16_t *vertices;
+    int *vertices;
     uint16_t *faces;
     uint16_t *textureCoords;
     uint16_t *uv;
@@ -29,10 +31,11 @@ typedef struct
 } Vertex2D;
 
 float fast_sqrt(float x);
-int vector3_length(int vector3[3]);
-void normalize_vector(int *vector3[3]);
-int *triangle_center(int triangle[9]);
-void rotate(int16_t *x, uint16_t *y, uint32_t t);
-bool checkIfTriangleVisible(int triangle[6]);
-void tri(int triangle[6], Material *mat, int lightDistance);
+float vector3_length(int *vector3);
+void normalize_vector(int *vector3);
+void triangle_center(int *triangle, int *center);
+void rotate(int *x, int *y, uint32_t t);
+int checkIfTriangleVisible(int *triangle);
+void rasterize(int y, int x0, int x1, int *triangle, Material *mat, int lightDistance);
+void tri(int *triangle, Material *mat, int lightDistance);
 void draw_model(Mesh *mesh, uint32_t t);
