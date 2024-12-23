@@ -34,7 +34,7 @@ float fast_sqrt(float x);
 float vector3_length(int *vector3);
 void normalize_vector(int *vector3);
 void triangle_center(int *triangle, int *center);
-void rotate(int *x, int *y, uint32_t t);
+void rotate(float *x, float *y, float qt);
 int checkIfTriangleVisible(int *triangle);
 void rasterize(int y, int x0, int x1, int *triangle, Material *mat, int lightDistance);
 void tri(int *triangle, Material *mat, int lightDistance);

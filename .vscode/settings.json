@@ -55,6 +55,7 @@
         "math.h": "c",
         "sync.h": "c",
         "random": "c",
-        "rasterizer.h": "c"
+        "rasterizer.h": "c",
+        "painter.h": "c"
     }
 }

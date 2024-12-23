@@ -16,18 +16,10 @@
 #define HEIGHT_HALF 120
 #define FIRE_FLOOR_ADR 76480
 #define SCALE_FACTOR 10000
-#define PI 3.141592653589793
-#define SHADING_ENABLED 0
+#define PI 3.141592653589793f
+#define PI2 6.283185307179586f
 
-// float fast_sqrt(float x)
-// {
-//     float y = x;
-//     int i = *(int *)&y;
-//     i = (i + 0x3f800000) >> 1;
-//     y = *(float *)&i;
-//     y = (y + x / y) * 0.5f;
-//     return y;
-// }
+#define SHADING_ENABLED 1
 
 float vector3_length(int *vector)
 {
@@ -48,12 +40,14 @@ void triangle_center(int *triangle, int *center)
     center[2] = (triangle[2] + triangle[5] + triangle[8]) / 3;
 }
 
-void rotate(int *x, int *y, uint32_t t)
+void rotate(float *x, float *y, float qt)
 {
-    float c = cos(t);
-    float s = sin(t);
-    int temp_x = (int)(c * *x - s * *y);
-    int temp_y = (int)(c * *x + s * *y);
+    float qt_rad=qt*PI2;
+    float test=sin(.628318f);
+    float c = cos(qt_rad);
+    float s = sin(qt_rad);
+    float temp_x = (c * *x - s * *y);
+    float temp_y = (s * *x + c * *y);
     *x = temp_x;
     *y = temp_y;
 }
@@ -69,10 +63,10 @@ int checkIfTriangleVisible(int *triangle)
 
 void rasterize(int y, int x0, int x1, int *triangle, Material *mat, int lightDistance)
 {
-    if (y < 0 || y >= 240)
+    if (y < 0 || y >= HEIGHT_DISPLAY)
         return;
     int yp2y = y - triangle[5];
-    int n = y % 2;
+    int n = (y % 2)/2;
     x0 += n;
     x1 += n;
     int q;
@@ -82,14 +76,14 @@ void rasterize(int y, int x0, int x1, int *triangle, Material *mat, int lightDis
         x0 = x1;
         x1 = q;
     }
-    if (x1 < 0 || x0 >= 240)
+    if (x1 < 0 || x0 >= HEIGHT_DISPLAY)
         return;
     if (x0 < 0)
         x0 = 0;
-    if (x1 >= 240)
-        x1 = 239;
-    x0 = x0 >> 1;
-    x1 = x1 >> 1;
+    if (x1 > HEIGHT_DISPLAY)
+        x1 = HEIGHT_DISPLAY;
+    // x0 = x0 >> 1;
+    // x1 = x1 >> 1;
     for (int x = x0; x<x1; x++)
     {
         uint16_t color = mat->diffuse;
@@ -130,11 +124,11 @@ void tri(int *triangle, Material *mat, int lightDistance)
         triangle[2] = triangle[4];
         triangle[4] = x;
     }
-    if (triangle[5] < 0 || triangle[1] > 239)
+    if (triangle[5] < 0 || triangle[1] > HEIGHT_DISPLAY)
         return;
     y = triangle[1];
-    x = triangle[0];
-    int xx = triangle[0];
+    int xx = x = triangle[0];
+
     int dx01 = triangle[2] - triangle[0];
     int dy01 = triangle[3] - triangle[1];
 
@@ -184,7 +178,7 @@ void tri(int *triangle, Material *mat, int lightDistance)
             xd = -1;
 
         int test=triangle[5];
-        while (y <= triangle[5] && y < 240)
+        while (y <= triangle[5] && y < HEIGHT_DISPLAY)
         {
             rasterize(y, x, xx, triangle, mat, lightDistance);
             y += 1;
@@ -206,31 +200,33 @@ void tri(int *triangle, Material *mat, int lightDistance)
 
 void draw_model(Mesh *mesh, uint32_t t)
 {
+    float qt=t*0.01f;
     uint16_t verticesCounter = mesh->verticesCounter;
-    int verticesModified[verticesCounter * 3];
+    float verticesModified[verticesCounter * 3];
     int verticesOnScreen[verticesCounter * 2];
     uint8_t vsc=0;
     for (uint16_t i = 0; i < verticesCounter * 3; i += 3)
     {
         // calculates vertex coords in 3D space
-        int x = (mesh->vertices)[i];
-        int y = mesh->vertices[i + 1];
-        int z = mesh->vertices[i + 2];
-        rotate(&x, &z, t);
-        rotate(&y, &z, t);
+        float x = mesh->vertices[i];
+        float y = mesh->vertices[i + 1];
+        float z = mesh->vertices[i + 2];
+        rotate(&x, &z, qt);
+        rotate(&y, &z, qt);
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
         // calculates vertex coords on the screen
-        z += 5;
-        x = (((x * FOCAL_LENGTH << 10) / z) >> 10) + HEIGHT_HALF;
-        y = (((y * FOCAL_LENGTH << 10) / z) >> 10) + HEIGHT_HALF;
-        verticesOnScreen[vsc] = x;
-        verticesOnScreen[vsc + 1] = y;
+        z+=5.0f;
+        x = x * FOCAL_LENGTH / z + WIDTH_HALF;
+        y = y * FOCAL_LENGTH / z + HEIGHT_HALF;
+        verticesOnScreen[vsc] = (int)x;
+        verticesOnScreen[vsc + 1] = (int)y;
         vsc+=2;
     }
     // flat shading
 
+    // for (uint16_t i = 6; i<12; i += 3)
     for (uint16_t i = 0; i<mesh->facesCounter * 3; i += 3)
     {
         uint16_t a = mesh->faces[i];
@@ -250,17 +246,17 @@ void draw_model(Mesh *mesh, uint32_t t)
         int lightDistance=0;
         if (SHADING_ENABLED)
         {
-            int xab = (verticesModified[b * 3] << 10) - (verticesModified[a * 3] << 10);
-            int yab = (verticesModified[b * 3 + 1] << 10) - (verticesModified[a * 3 + 1] << 10);
-            int zab = (verticesModified[b * 3 + 2] << 10) - (verticesModified[a * 3 + 2] << 10);
-            int xac = (verticesModified[c * 3] << 10) - (verticesModified[a * 3] << 10);
-            int yac = (verticesModified[c * 3 + 1] << 10) - (verticesModified[a * 3 + 1] << 10);
-            int zac = (verticesModified[c * 3 + 2] << 10) - (verticesModified[a * 3 + 2] << 10);
+            int xab = verticesModified[b * 3] - verticesModified[a * 3];
+            int yab = verticesModified[b * 3 + 1] - verticesModified[a * 3 + 1];
+            int zab = verticesModified[b * 3 + 2] - verticesModified[a * 3 + 2];
+            int xac = verticesModified[c * 3] - verticesModified[a * 3];
+            int yac = verticesModified[c * 3 + 1] - verticesModified[a * 3 + 1];
+            int zac = verticesModified[c * 3 + 2] - verticesModified[a * 3 + 2];
             int normalVector[3] =
                 {
-                    (yab * zac - zab * yac) >> 10,
-                    (zab * xac - xab * zac) >> 10,
-                    (xab * yac - yab * xac) >> 10};
+                    (yab * zac - zab * yac),
+                    (zab * xac - xab * zac),
+                    (xab * yac - yab * xac)};
             normalize_vector(normalVector);
             int normalVectorLength = vector3_length(normalVector);
             // light direction
@@ -297,7 +293,9 @@ void draw_model(Mesh *mesh, uint32_t t)
             if (lightDistance < 0)
                 lightDistance = 0;
         }
-
-        tri(triangleOnScreen, mesh->mat, lightDistance);
+        Material material=*mesh->mat;
+        material.diffuse+=(i*30);
+        tri(triangleOnScreen, &material, lightDistance);
+        // tri(triangleOnScreen, mesh->mat, lightDistance);
     }
 }

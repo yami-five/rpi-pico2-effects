@@ -10,10 +10,15 @@
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
 
-void draw_pixel(int y, int x, uint16_t color)
+void draw_line(int x0, int y0, int x1, int y1, uint16_t color)
 {
-    uint32_t line_adr=x*HEIGHT_DOUBLED;
-    uint16_t j2=y*2;
+    
+}
+
+void draw_pixel(int x, int y, uint16_t color)
+{
+    int line_adr=x*HEIGHT_DOUBLED;
+    int j2=y*2;
     buffer[line_adr+j2]=(color>>8)&0xff;
     buffer[line_adr+j2+1]=color&0xff;
 }

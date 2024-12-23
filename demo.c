@@ -7,6 +7,12 @@
 #include "rasterizer.h"
 #include "painter.h"
 
+#define FOCAL_LENGTH 90
+#define WIDTH_DISPLAY 320
+#define HEIGHT_DISPLAY 240
+#define WIDTH_HALF 160
+#define HEIGHT_HALF 120
+
 int main(void)
 {
     //blink();
@@ -48,7 +54,7 @@ int main(void)
         0xabcd,
         {0}
     };
-    int vertices[24]={1,1,-1,1,-1,-1,1,1,1,1,-1,1,-1,1,-1,-1,-1,-1,-1,1,1,-1,-1,1};
+    int vertices[24]={1.3,1.3,-1.3,1.3,-1.3,-1.3,1.3,1.3,1.3,1.3,-1.3,1.3,-1.3,1.3,-1.3,-1.3,-1.3,-1.3,-1.3,1.3,1.3,-1.3,-1.3,1.3};
     uint16_t faces[36]={0,2,4,3,7,2,7,5,6,5,7,1,1,3,0,5,1,4,2,6,4,7,6,2,5,4,6,7,3,1,3,2,0,1,0,4};
     uint16_t textureCoords[8]={1,0,0,1,0,0,1,1};
     uint16_t uv[36]={2,1,0,2,1,0,1,3,2,0,2,3,2,1,0,1,3,2,1,3,0,1,3,0,3,0,2,2,1,3,1,3,0,3,0,2};
@@ -66,6 +72,31 @@ int main(void)
     {
         clear_buffer();
         draw_model(&cube,t);
+        draw_pixel(10,10,0xaaaa);
+        draw_pixel(310,230,0xaaaa);
+        draw_pixel(310,10,0xaaaa);
+        draw_pixel(10,230,0xaaaa);
+
+        draw_pixel(160,120,0xaaaa);
+
+        for (int i=0; i<24;i+=3)
+        {
+            int z = vertices[i+2]+5;
+            int x = vertices[i] * FOCAL_LENGTH / z + WIDTH_HALF;
+            int y = vertices[i+1] * FOCAL_LENGTH / z + HEIGHT_HALF;
+            draw_pixel(x,y,0xaaaa);
+        }
+        // draw_pixel(344,144,0xaaaa);
+        // draw_pixel(344,96,0xaaaa);
+
+        // draw_pixel(336,136,0xaaaa);
+        // draw_pixel(336,104,0xaaaa);
+        
+        // draw_pixel(296,144,0xaaaa);
+        // draw_pixel(296,96,0xaaaa);
+
+        // draw_pixel(304,136,0xaaaa);
+        // draw_pixel(304,104,0xaaaa);
         draw_buffer();
         // draw_fire();
         // color++;
