@@ -1,11 +1,12 @@
 from PIL import Image
 import io
-image = Image.open("sl_w_p.bmp")
+image = Image.open("sweater.bmp")
+
 print(image.size)
 converted_img=""
 for x in range (0,240):
-    for y in range (0,320):
-        (r,g,b)=image.getpixel((y, x))
+    for y in range (0,240):
+        (r,g,b)=image.getpixel((x, y))
         r = max(0, min(255, r))
         g = max(0, min(255, g))
         b = max(0, min(255, b))

@@ -1,9 +1,6 @@
-#include "LCD_Test.h"
-// #include "blink.h"
-#include "LCD_2in.h"
+#include "lcd.h"
 #include "effects.h"
 #include "DEV_Config.h"
-#include "LCD_2in.c"
 #include "rasterizer.h"
 #include "painter.h"
 
@@ -13,8 +10,12 @@
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
 
+#define HORIZONTAL 0
+#define VERTICAL 1
+
 int main(void)
 {
+    int stage=0;
     //blink();
     // LCD_2in_test();
     DEV_Delay_ms(100);
@@ -25,29 +26,14 @@ int main(void)
     DEV_SET_PWM(50);
     /* LCD Init */
     printf("2inch LCD demo...\r\n");
-    LCD_2IN_Init(HORIZONTAL);
-    LCD_2IN_Clear(WHITE);
+    init_lcd(0);
+    clear_buffer();
+    set_windows(0,0,HEIGHT_DISPLAY,WIDTH_DISPLAY);
+    draw_buffer();
     
-    //LCD_SetBacklight(1023);
-    UDOUBLE Imagesize = LCD_2IN_HEIGHT*LCD_2IN_WIDTH*2;
-    UWORD *BlackImage;
-    if((BlackImage = (UWORD *)malloc(Imagesize)) == NULL) {
-        printf("Failed to apply for black memory...\r\n");
-        exit(0);
-    }
-    // /*1.Create a new image cache named IMAGE_RGB and fill it with white*/
-    Paint_NewImage((UBYTE *)BlackImage,LCD_2IN.WIDTH,LCD_2IN.HEIGHT, 90, WHITE);
-    Paint_SetScale(65);
-    Paint_Clear(WHITE);
-    // /* GUI */
-    printf("drawing...\r\n");
-    // /*2.Drawing on the image*/
-
-    // init_fire();
+    init_fire();
     uint32_t t=0;
-    // uint32_t screen_size=320*240;
     init_sin_lut();
-    // uint16_t color=0x0000;
 
     Material material=
     {
@@ -67,40 +53,32 @@ int main(void)
         uv,//uv
         &material//mat
     };
-    
+    int x=0;
+    int d=1;
     while (1)
     {
+        if(t%100==0)
+            stage++;
+            if (stage>2)
+                stage=0;
         clear_buffer();
-        draw_model(&cube,t);
-        draw_pixel(10,10,0xaaaa);
-        draw_pixel(310,230,0xaaaa);
-        draw_pixel(310,10,0xaaaa);
-        draw_pixel(10,230,0xaaaa);
-
-        draw_pixel(160,120,0xaaaa);
-
-        for (int i=0; i<24;i+=3)
+        if(stage==0)
         {
-            int z = vertices[i+2]+5;
-            int x = vertices[i] * FOCAL_LENGTH / z + WIDTH_HALF;
-            int y = vertices[i+1] * FOCAL_LENGTH / z + HEIGHT_HALF;
-            draw_pixel(x,y,0xaaaa);
+            draw_image(image1,240,240,x,0);
+            x+=10*d;
+            if(x>=80) d=-1;
+            if(x<=0) d=1;
+            draw_model(&cube,t);
+            // draw_pixel(10,10,0xaaaa);
+            // draw_pixel(310,230,0xaaaa);
+            // draw_pixel(310,10,0xaaaa);
+            // draw_pixel(10,230,0xaaaa);
         }
-        // draw_pixel(344,144,0xaaaa);
-        // draw_pixel(344,96,0xaaaa);
-
-        // draw_pixel(336,136,0xaaaa);
-        // draw_pixel(336,104,0xaaaa);
-        
-        // draw_pixel(296,144,0xaaaa);
-        // draw_pixel(296,96,0xaaaa);
-
-        // draw_pixel(304,136,0xaaaa);
-        // draw_pixel(304,104,0xaaaa);
+        else if(stage==1)
+            draw_fire();
+        else
+            plasma(t);
         draw_buffer();
-        // draw_fire();
-        // color++;
-        // plasma(t);
         t++;
     }   
 
