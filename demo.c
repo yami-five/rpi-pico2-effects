@@ -40,7 +40,7 @@ int main(void)
         0xabcd,
         {0}
     };
-    int vertices[24]={1.3,1.3,-1.3,1.3,-1.3,-1.3,1.3,1.3,1.3,1.3,-1.3,1.3,-1.3,1.3,-1.3,-1.3,-1.3,-1.3,-1.3,1.3,1.3,-1.3,-1.3,1.3};
+    float vertices[24]={1.3f,1.3f,-1.3f,1.3f,-1.3f,-1.3f,1.3f,1.3f,1.3f,1.3f,-1.3f,1.3f,-1.3f,1.3f,-1.3f,-1.3f,-1.3f,-1.3f,-1.3f,1.3f,1.3f,-1.3f,-1.3f,1.3f};
     uint16_t faces[36]={0,2,4,3,7,2,7,5,6,5,7,1,1,3,0,5,1,4,2,6,4,7,6,2,5,4,6,7,3,1,3,2,0,1,0,4};
     uint16_t textureCoords[8]={1,0,0,1,0,0,1,1};
     uint16_t uv[36]={2,1,0,2,1,0,1,3,2,0,2,3,2,1,0,1,3,2,1,3,0,1,3,0,3,0,2,2,1,3,1,3,0,3,0,2};
@@ -53,22 +53,26 @@ int main(void)
         uv,//uv
         &material//mat
     };
+    PointLight light=
+    {
+        {
+            50,50,50
+        },
+        0,
+        0
+    };
     int x=0;
     int d=1;
     while (1)
     {
-        if(t%100==0)
+        if(t%30==0)
             stage++;
-            if (stage>2)
+            if (stage>3)
                 stage=0;
         clear_buffer();
         if(stage==0)
         {
-            draw_image(image1,240,240,x,0);
-            x+=10*d;
-            if(x>=80) d=-1;
-            if(x<=0) d=1;
-            draw_model(&cube,t);
+            draw_model(&cube,&light,t);
             // draw_pixel(10,10,0xaaaa);
             // draw_pixel(310,230,0xaaaa);
             // draw_pixel(310,10,0xaaaa);
@@ -76,6 +80,13 @@ int main(void)
         }
         else if(stage==1)
             draw_fire();
+        else if(stage==2)
+        {
+            x+=10*d;
+            if(x>=80) d=-1;
+            if(x<=0) d=1;
+            draw_image(image1,240,240,x,0);
+        }
         else
             plasma(t);
         draw_buffer();
