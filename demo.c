@@ -45,7 +45,10 @@ int main(void)
         clear_buffer();
         if(stage==0)
         {
-            draw_image(image1,240,240,40,0);
+            x+=10*d;
+            if(x>=80) d=-1;
+            if(x<=0) d=1;
+            draw_image(image1,240,240,x,0);
         }
         else if(stage==1)
             draw_model(cubeColored,lightWhite,t);
@@ -54,21 +57,12 @@ int main(void)
             // draw_pixel(310,10,0xaaaa);
             // draw_pixel(10,230,0xaaaa);
         else if(stage==2)
-        {
-            x+=10*d;
-            if(x>=80) d=-1;
-            if(x<=0) d=1;
-            draw_image(image1,240,240,x,0);
-        }
-        else if(stage==3)
             plasma(t);
-        else if(stage==4)
+        else if(stage==3)
         {
             draw_model(cubeTextured,lightWhite,t);
         }
-        else if(stage==5)
-            draw_fire();
-        else if(stage==6)
+        else if(stage==4)
         {
             if(t%10)
             {
@@ -90,7 +84,7 @@ int main(void)
         t++;
         if(t%30==0)
             stage++;
-            if (stage>7)
+            if (stage>4)
                 stage=0;
     }   
     freeModel(cubeTextured);
