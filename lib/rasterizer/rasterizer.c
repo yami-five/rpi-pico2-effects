@@ -24,16 +24,14 @@
 
 #define SHADING_ENABLED 1
 
-PointLight createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
+PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 {
-    PointLight light=
-    {
-        {
-            x,y,z
-        },
-        0,
-        0
-    };
+    PointLight *light = (PointLight *)malloc(sizeof(PointLight));
+    light->position.x=x;
+    light->position.y=y;
+    light->position.z=z;
+    light->intensity=intensity;
+    light->color=color;
     return light;
 }
 
@@ -83,27 +81,50 @@ int checkIfTriangleVisible(Triangle2D *triangle)
     return (e1x * e2y - e1y * e2x) >= 0;
 }
  
-void lightedColor(uint16_t *color, float lightDistance)
+void shading(uint16_t *color, float lightDistance, PointLight *light)
 {
-    lightDistance*=2;
-    if(lightDistance!=1)
+    if(lightDistance!=0.5f)
     {
-        uint8_t r = (*color>>11)&0x1f;
-        uint8_t g = (*color>>5)&0x1f;
-        uint8_t b = *color&0x1f;   
+        if(lightDistance>1.9f) lightDistance=1.9f;
+        uint8_t rMesh =(*color>>11)&0x1f;
+        uint8_t gMesh = (*color>>5)&0x3f;
+        uint8_t bMesh = *color&0x1f;
 
-        r = (uint8_t)(r * lightDistance + (1.0f - lightDistance) * (31 - r));
-        g = (uint8_t)(g * lightDistance + (1.0f - lightDistance) * (63 - g));
-        b = (uint8_t)(b * lightDistance + (1.0f - lightDistance) * (31 - b));   
+        uint8_t rLight = (light->color>>11)&0x1f;
+        uint8_t gLight = (light->color>>5)&0x3f;
+        uint8_t bLight = light->color&0x1f;
+
+        uint8_t r = (rMesh*rLight)/31;
+        uint8_t g = (gMesh*gLight)/63;
+        uint8_t b = (bMesh*bLight)/31;
+
+        r = (uint8_t)(r * lightDistance);
+        g = (uint8_t)(g * lightDistance);
+        b = (uint8_t)(b * lightDistance);  
+
+
         *color=(r<<11)|(g<<5)|b;
     }
 }
 
-void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance)
+uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, int y)
+{
+    float Ba=((triangle->b.y-triangle->c.y)*(x-triangle->c.x)+(triangle->c.x-triangle->b.x)*(y-triangle->c.y))/divider;
+    float Bb=((triangle->c.y-triangle->a.y)*(x-triangle->c.x)+(triangle->a.x-triangle->c.x)*(y-triangle->c.y))/divider;
+    float Bc=1-Ba-Bb;
+    int uv_x=(Ba*triangle->uvA.x+Bb*triangle->uvB.x+Bc*triangle->uvC.x)*mat->textureSize;
+    int uv_y=(Ba*triangle->uvA.y+Bb*triangle->uvB.y+Bc*triangle->uvC.y)*mat->textureSize;
+    if(uv_x<0) uv_x=0;
+    if(uv_x>mat->textureSize)uv_x=mat->textureSize-1;
+    if(uv_y<0) uv_y=0;
+    if(uv_y>mat->textureSize)uv_y=mat->textureSize-1;
+    return mat->texture[uv_y*mat->textureSize+uv_x];
+}   
+
+void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance, float divider, PointLight *light)
 {
     if (y < 0 || y >= HEIGHT_DISPLAY)
         return;
-    int yp2y = y - triangle->c.y;
     int n = (y % 2) / 2;
     x0 += n;
     x1 += n;
@@ -127,18 +148,17 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float
         uint16_t color=0;
         if (mat->textureSize==0)
             color = mat->diffuse;
+        else 
+            color=texturing(triangle, mat, divider, x, y);
         if (SHADING_ENABLED)
-            lightedColor(&color, lightDistance);
+            shading(&color, lightDistance, light);
         draw_pixel(x, y, color);
     }
 }
 
-void tri(Triangle2D *triangle, Material *mat, float lightDistance)
+void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *light)
 {
-    // x0,y0=triangle->a.x,triangle->a.y
-    // x1,y1=triangle->b.x,triangle->b.y
-    // x2,y2=triangle->c.x,triangle->c.y
-    int x, y;
+    int x, y, uv;
     if (triangle->a.y > triangle->b.y)
     {
         y = triangle->a.y;
@@ -147,6 +167,13 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
         x = triangle->a.x;
         triangle->a.x = triangle->b.x;
         triangle->b.x = x;
+
+        uv = triangle->uvA.x;
+        triangle->uvA.x = triangle->uvB.x;
+        triangle->uvB.x = uv;
+        uv = triangle->uvA.y;
+        triangle->uvA.y = triangle->uvB.y;
+        triangle->uvB.y = uv;
     }
     if (triangle->a.y > triangle->c.y)
     {
@@ -156,6 +183,13 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
         x = triangle->a.x;
         triangle->a.x = triangle->c.x;
         triangle->c.x = x;
+
+        uv = triangle->uvA.x;
+        triangle->uvA.x = triangle->uvC.x;
+        triangle->uvC.x = uv;
+        uv = triangle->uvA.y;
+        triangle->uvA.y = triangle->uvC.y;
+        triangle->uvC.y = uv;
     }
     if (triangle->b.y > triangle->c.y)
     {
@@ -165,6 +199,13 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
         x = triangle->b.x;
         triangle->b.x = triangle->c.x;
         triangle->c.x = x;
+
+        uv = triangle->uvB.x;
+        triangle->uvB.x = triangle->uvC.x;
+        triangle->uvC.x = uv;
+        uv = triangle->uvB.y;
+        triangle->uvB.y = triangle->uvC.y;
+        triangle->uvC.y = uv;
     }
     if (triangle->c.y < 0 || triangle->a.y > HEIGHT_DISPLAY)
         return;
@@ -186,6 +227,11 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
     if (triangle->c.x < triangle->a.x)
         xxd = -1;
 
+    float divider=0.0f;
+
+    if(mat->textureSize>0)
+        divider=((triangle->b.y-triangle->c.y)*(triangle->a.x-triangle->c.x)+(triangle->c.x-triangle->b.x)*(triangle->a.y-triangle->c.y));
+
     if (triangle->a.y < triangle->b.y)
     {
         int q = 0;
@@ -194,7 +240,7 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
             xd = -1;
         while (y <= triangle->b.y)
         {
-            rasterize(y, x, xx, triangle, mat, lightDistance);
+            rasterize(y, x, xx, triangle, mat, lightDistance, divider, light);
             y += 1;
             q += dx01;
             q2 += dx02;
@@ -222,7 +268,7 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance)
         int test = triangle->c.y;
         while (y <= triangle->c.y && y < HEIGHT_DISPLAY)
         {
-            rasterize(y, x, xx, triangle, mat, lightDistance);
+            rasterize(y, x, xx, triangle, mat, lightDistance, divider, light);
             y += 1;
             q += dx12;
             q2 += dx02;
@@ -275,6 +321,9 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
         uint16_t a = mesh->faces[i];
         uint16_t b = mesh->faces[i + 1];
         uint16_t c = mesh->faces[i + 2];
+        uint16_t uvA = mesh->uv[i];
+        uint16_t uvB = mesh->uv[i+1];
+        uint16_t uvC = mesh->uv[i+2];
         Triangle2D triangle =
             {
                 {verticesOnScreen[a * 2],
@@ -282,7 +331,14 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
                 {verticesOnScreen[b * 2],
                  verticesOnScreen[b * 2 + 1]},
                 {verticesOnScreen[c * 2],
-                 verticesOnScreen[c * 2 + 1]}};
+                 verticesOnScreen[c * 2 + 1]},
+                {mesh->textureCoords[uvA * 2],
+                 mesh->textureCoords[uvA * 2 + 1]},
+                {mesh->textureCoords[uvB * 2],
+                 mesh->textureCoords[uvB * 2 + 1]},
+                {mesh->textureCoords[uvC * 2],
+                 mesh->textureCoords[uvC * 2 + 1]}
+            };
         if (!checkIfTriangleVisible(&triangle))
             continue;
         // normal vector
@@ -337,6 +393,6 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
                 lightDistance = 1.0f;
         }
 
-        tri(&triangle, mesh->mat, lightDistance);
+        tri(&triangle, mesh->mat, lightDistance, pLight);
     }
 }

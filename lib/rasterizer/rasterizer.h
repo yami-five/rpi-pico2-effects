@@ -18,6 +18,9 @@ typedef struct
     Vertex2D a;
     Vertex2D b;
     Vertex2D c;
+    Vertex2D uvA;
+    Vertex2D uvB;
+    Vertex2D uvC;
 } Triangle2D;
 
 typedef struct
@@ -34,7 +37,7 @@ typedef struct
     uint16_t color;
 } PointLight;
 
-PointLight createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
+PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
 float fast_sqrt(float x);
 float vector3_length(float *vector3);
 void normalize_vector(float *vector3);
@@ -42,7 +45,8 @@ void triangle_center(Triangle3D *triangle, float *center);
 void rotate(float *x, float *y, float qt);
 void inf(float *x, float *y, float qt);
 int checkIfTriangleVisible(Triangle2D *triangle);
-void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance);
-void tri(Triangle2D *triangle, Material *mat, float lightDistance);
+void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance, float divider, PointLight *light);
+void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *light);
 void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t);
-void lightedColor(uint16_t *color, float lightDistance);
+void shading(uint16_t *color, float lightDistance, PointLight *light);
+uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, int y);

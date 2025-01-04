@@ -22,7 +22,6 @@ int main(void)
         return -1;
     }
     /* LCD Init */
-    printf("2inch LCD demo...\r\n");
     init_lcd(0);
     set_windows(0,0,HEIGHT_DISPLAY,WIDTH_DISPLAY);
     clear_buffer();
@@ -32,27 +31,28 @@ int main(void)
     uint32_t t=0;
     init_sin_lut();
 
-    Mesh* cube = createColoredCube(0x34c9);
-    PointLight light = createLight(50,50,50,0,0);
+    Mesh* cubeColored = createColoredCube(0x34c9);
+    Mesh* cubeTextured = createTexturedCube(cube_texture,128);
+    PointLight* lightWhite = createLight(50,50,50,10,0xffff);
+    PointLight* lightRed = createLight(50,50,50,10,0xf800);
+    PointLight* lightBlue = createLight(50,50,50,10,0x07e0);
+    PointLight* lightGreen = createLight(50,50,50,10,0x001f);
     int x=0;
     int d=1;
+    int colorNum=0;
     while (1)
     {
-        if(t%30==0)
-            // stage++;
-            if (stage>3)
-                stage=0;
         clear_buffer();
         if(stage==0)
         {
-            draw_model(cube,&light,t);
+            draw_image(image1,240,240,40,0);
+        }
+        else if(stage==1)
+            draw_model(cubeColored,lightWhite,t);
             // draw_pixel(10,10,0xaaaa);
             // draw_pixel(310,230,0xaaaa);
             // draw_pixel(310,10,0xaaaa);
             // draw_pixel(10,230,0xaaaa);
-        }
-        else if(stage==1)
-            draw_fire();
         else if(stage==2)
         {
             x+=10*d;
@@ -60,11 +60,40 @@ int main(void)
             if(x<=0) d=1;
             draw_image(image1,240,240,x,0);
         }
-        else
+        else if(stage==3)
             plasma(t);
+        else if(stage==4)
+        {
+            draw_model(cubeTextured,lightWhite,t);
+        }
+        else if(stage==5)
+            draw_fire();
+        else if(stage==6)
+        {
+            if(t%10)
+            {
+                colorNum++;
+                if(colorNum>2)colorNum=0;    
+            }
+            if(colorNum==0)
+                draw_model(cubeTextured,lightBlue,t);
+            else if(colorNum==1)
+                draw_model(cubeTextured,lightRed,t);
+            else 
+                draw_model(cubeTextured,lightGreen,t);
+        }
+        else
+        {
+            clear_buffer();
+        }
         draw_buffer();
         t++;
+        if(t%30==0)
+            stage++;
+            if (stage>7)
+                stage=0;
     }   
-    freeModel(cube);
+    freeModel(cubeTextured);
+    freeModel(cubeColored);
     return 0;
 }
