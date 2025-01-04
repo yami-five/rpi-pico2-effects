@@ -1,10 +1,13 @@
-#include "rasterizer.h"
-#include <math.h>
+
 #include "DEV_Config.h"
+#include "effects.h"
+#include "models.h"
+#include "painter.h"
+#include "rasterizer.h"
+
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "effects.h"
-#include "painter.h"
 
 #define FOCAL_LENGTH 96
 #define WIDTH_DISPLAY 320
@@ -20,6 +23,19 @@
 #define PI2 6.283185307179586f
 
 #define SHADING_ENABLED 1
+
+PointLight createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
+{
+    PointLight light=
+    {
+        {
+            x,y,z
+        },
+        0,
+        0
+    };
+    return light;
+}
 
 float vector3_length(float *vector)
 {
@@ -108,7 +124,9 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float
     // x1 = x1 >> 1;
     for (int x = x0; x < x1; x++)
     {
-        uint16_t color = mat->diffuse;
+        uint16_t color=0;
+        if (mat->textureSize==0)
+            color = mat->diffuse;
         if (SHADING_ENABLED)
             lightedColor(&color, lightDistance);
         draw_pixel(x, y, color);

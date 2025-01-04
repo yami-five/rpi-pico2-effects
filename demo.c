@@ -3,6 +3,8 @@
 #include "DEV_Config.h"
 #include "rasterizer.h"
 #include "painter.h"
+#include "models.h"
+#include "gfx.h"
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -16,63 +18,34 @@
 int main(void)
 {
     int stage=0;
-    //blink();
-    // LCD_2in_test();
-    DEV_Delay_ms(100);
-    printf("LCD_2in_test Demo\r\n");
     if(DEV_Module_Init()!=0){
         return -1;
     }
-    DEV_SET_PWM(50);
     /* LCD Init */
     printf("2inch LCD demo...\r\n");
     init_lcd(0);
-    clear_buffer();
     set_windows(0,0,HEIGHT_DISPLAY,WIDTH_DISPLAY);
+    clear_buffer();
     draw_buffer();
     
     init_fire();
     uint32_t t=0;
     init_sin_lut();
 
-    Material material=
-    {
-        0xabcd,
-        {0}
-    };
-    float vertices[24]={1.3f,1.3f,-1.3f,1.3f,-1.3f,-1.3f,1.3f,1.3f,1.3f,1.3f,-1.3f,1.3f,-1.3f,1.3f,-1.3f,-1.3f,-1.3f,-1.3f,-1.3f,1.3f,1.3f,-1.3f,-1.3f,1.3f};
-    uint16_t faces[36]={0,2,4,3,7,2,7,5,6,5,7,1,1,3,0,5,1,4,2,6,4,7,6,2,5,4,6,7,3,1,3,2,0,1,0,4};
-    uint16_t textureCoords[8]={1,0,0,1,0,0,1,1};
-    uint16_t uv[36]={2,1,0,2,1,0,1,3,2,0,2,3,2,1,0,1,3,2,1,3,0,1,3,0,3,0,2,2,1,3,1,3,0,3,0,2};
-    Mesh cube={
-        8, //verticesCounter
-        12,//facesCounter
-        vertices,//vertices
-        faces,//faces
-        textureCoords,//textureCoords
-        uv,//uv
-        &material//mat
-    };
-    PointLight light=
-    {
-        {
-            50,50,50
-        },
-        0,
-        0
-    };
+    Mesh* cube = createColoredCube(0x34c9);
+    PointLight light = createLight(50,50,50,0,0);
     int x=0;
     int d=1;
     while (1)
     {
         if(t%30==0)
-            stage++;
+            // stage++;
             if (stage>3)
                 stage=0;
         clear_buffer();
         if(stage==0)
         {
-            draw_model(&cube,&light,t);
+            draw_model(cube,&light,t);
             // draw_pixel(10,10,0xaaaa);
             // draw_pixel(310,230,0xaaaa);
             // draw_pixel(310,10,0xaaaa);
@@ -92,6 +65,6 @@ int main(void)
         draw_buffer();
         t++;
     }   
-
+    freeModel(cube);
     return 0;
 }

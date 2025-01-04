@@ -1,21 +1,4 @@
-#include <stdint.h>
-
-typedef struct
-{
-    uint16_t diffuse;
-    uint16_t *texture;
-} Material;
-
-typedef struct
-{
-    uint16_t verticesCounter;
-    uint16_t facesCounter;
-    float *vertices;
-    uint16_t *faces;
-    uint16_t *textureCoords;
-    uint16_t *uv;
-    Material *mat;
-} Mesh;
+#include "models.h"
 
 typedef struct
 {
@@ -44,14 +27,14 @@ typedef struct
     Vertex3D c;
 } Triangle3D;
 
-typedef struct 
+typedef struct
 {
     Vertex3D position;
     uint8_t intensity;
     uint16_t color;
-}PointLight;
+} PointLight;
 
-
+PointLight createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
 float fast_sqrt(float x);
 float vector3_length(float *vector3);
 void normalize_vector(float *vector3);

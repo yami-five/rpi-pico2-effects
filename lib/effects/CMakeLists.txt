@@ -1,6 +1,6 @@
-aux_source_directory(. DIR_effects_SRCS)
+aux_source_directory(. DIR_EFFECTS_SRCS)
 
-add_library(effects ${DIR_effects_SRCS})
+add_library(effects ${DIR_EFFECTS_SRCS})
 
 include_directories(../Config)
 include_directories(../painter)

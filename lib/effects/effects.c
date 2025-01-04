@@ -1,6 +1,6 @@
 #include "effects.h"
 #include <stdint.h>
-#include <stdlib.h>
+#include "pico/stdlib.h"
 #include <math.h>
 #include "DEV_Config.h"
 #include "hardware/divider.h"
