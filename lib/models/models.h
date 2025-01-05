@@ -14,12 +14,12 @@ typedef struct
     float x;
     float y;
     float z;
-} TransformMatrix;
+} TransformVector;
 
 typedef struct
 {
     uint8_t transformType;
-    TransformMatrix* transformMatrix;
+    TransformVector* transformVector;
 } TransformInfo;
 
 typedef struct

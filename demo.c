@@ -48,12 +48,12 @@ int main(void)
     {
         float qt=t*0.05f;
         clear_buffer();
-        cubeTextured->transformations[0].transformMatrix->x=qt;
-        cubeTextured->transformations[0].transformMatrix->y=qt;
+        cubeTextured->transformations[0].transformVector->x=qt;
+        cubeTextured->transformations[0].transformVector->y=qt;
         draw_model(cubeTextured,lightWhite);
-        // cubeColored->transformations[0].transformMatrix->x-=qt;
-        // cubeColored->transformations[0].transformMatrix->y-=qt;
-        // cubeColored->transformations[0].transformMatrix->z-=qt;
+        // cubeColored->transformations[0].transformVector->x-=qt;
+        // cubeColored->transformations[0].transformVector->y-=qt;
+        // cubeColored->transformations[0].transformVector->z-=qt;
         // draw_model(cubeColored,lightWhite);
         // if(stage==0)
         // {

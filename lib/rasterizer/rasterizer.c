@@ -57,18 +57,18 @@ void triangle_center(Triangle3D *triangle, float *center)
 void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
 {
     if (transformInfo->transformType == 0)
-        rotate(x, y, z, transformInfo->transformMatrix);
+        rotate(x, y, z, transformInfo->transformVector);
     if (transformInfo->transformType == 1)
-        translate(x, y, z, transformInfo->transformMatrix);
+        translate(x, y, z, transformInfo->transformVector);
     if (transformInfo->transformType == 2)
-        scale(x, y, z, transformInfo->transformMatrix);
+        scale(x, y, z, transformInfo->transformVector);
 }
 
-void rotate(float *x, float *y, float *z, TransformMatrix *matrix)
+void rotate(float *x, float *y, float *z, TransformVector *vector)
 {
-    if (matrix->x != 0.0f)
+    if (vector->x != 0.0f)
     {
-        float qt_rad = matrix->x * PI2;
+        float qt_rad = vector->x * PI2;
         float c = cos(qt_rad);
         float s = sin(qt_rad);
         float temp_x = (c * *y - s * *z);
@@ -76,9 +76,9 @@ void rotate(float *x, float *y, float *z, TransformMatrix *matrix)
         *y = temp_x;
         *z = temp_y;
     }
-    if (matrix->y != 0.0f)
+    if (vector->y != 0.0f)
     {
-        float qt_rad = matrix->y * PI2;
+        float qt_rad = vector->y * PI2;
         float c = cos(qt_rad);
         float s = sin(qt_rad);
         float temp_x = (c * *x - s * *z);
@@ -86,9 +86,9 @@ void rotate(float *x, float *y, float *z, TransformMatrix *matrix)
         *x = temp_x;
         *z = temp_y;
     }
-    if (matrix->z != 0.0f)
+    if (vector->z != 0.0f)
     {
-        float qt_rad = matrix->z * PI2;
+        float qt_rad = vector->z * PI2;
         float c = cos(qt_rad);
         float s = sin(qt_rad);
         float temp_x = (c * *x - s * *y);
@@ -98,18 +98,18 @@ void rotate(float *x, float *y, float *z, TransformMatrix *matrix)
     }
 }
 
-void translate(float *x, float *y, float *z, TransformMatrix *matrix)
+void translate(float *x, float *y, float *z, TransformVector *vector)
 {
-    *x += matrix->x;
-    *y += matrix->y;
-    *z += matrix->z;
+    *x += vector->x;
+    *y += vector->y;
+    *z += vector->z;
 }
 
-void scale(float *x, float *y, float *z, TransformMatrix *matrix)
+void scale(float *x, float *y, float *z, TransformVector *vector)
 {
-    *x *= matrix->x;
-    *y *= matrix->y;
-    *z *= matrix->z;
+    *x *= vector->x;
+    *y *= vector->y;
+    *z *= vector->z;
 }
 
 void inf(float *x, float *y, float qt)
