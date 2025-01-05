@@ -40,52 +40,57 @@ int main(void)
     int x=0;
     int d=1;
     int colorNum=0;
+    cubeTextured->transformations=addTransformation(cubeTextured->transformations,&cubeTextured->transformationsNum,0.0f,0.0f,0.0f,0);
     while (1)
     {
+        float qt=t*0.05f;
         clear_buffer();
-        if(stage==0)
-        {
-            x+=10*d;
-            if(x>=80) d=-1;
-            if(x<=0) d=1;
-            draw_image(image1,240,240,x,0);
-        }
-        else if(stage==1)
-            draw_model(cubeColored,lightWhite,t);
-            // draw_pixel(10,10,0xaaaa);
-            // draw_pixel(310,230,0xaaaa);
-            // draw_pixel(310,10,0xaaaa);
-            // draw_pixel(10,230,0xaaaa);
-        else if(stage==2)
-            plasma(t);
-        else if(stage==3)
-        {
-            draw_model(cubeTextured,lightWhite,t);
-        }
-        else if(stage==4)
-        {
-            if(t%10)
-            {
-                colorNum++;
-                if(colorNum>2)colorNum=0;    
-            }
-            if(colorNum==0)
-                draw_model(cubeTextured,lightBlue,t);
-            else if(colorNum==1)
-                draw_model(cubeTextured,lightRed,t);
-            else 
-                draw_model(cubeTextured,lightGreen,t);
-        }
-        else
-        {
-            clear_buffer();
-        }
+        draw_model(cubeTextured,lightWhite);
+        cubeTextured->transformations[0].transformMatrix->x=qt;
+        cubeTextured->transformations[0].transformMatrix->y=qt;
+        // if(stage==0)
+        // {
+        //     x+=10*d;
+        //     if(x>=80) d=-1;
+        //     if(x<=0) d=1;
+        //     draw_image(image1,240,240,x,0);
+        // }
+        // else if(stage==1)
+        //     draw_model(cubeColored,lightWhite,t);
+        //     // draw_pixel(10,10,0xaaaa);
+        //     // draw_pixel(310,230,0xaaaa);
+        //     // draw_pixel(310,10,0xaaaa);
+        //     // draw_pixel(10,230,0xaaaa);
+        // else if(stage==2)
+        //     plasma(t);
+        // else if(stage==3)
+        // {
+        //     draw_model(cubeTextured,lightWhite,t);
+        // }
+        // else if(stage==4)
+        // {
+        //     if(t%10)
+        //     {
+        //         colorNum++;
+        //         if(colorNum>2)colorNum=0;    
+        //     }
+        //     if(colorNum==0)
+        //         draw_model(cubeTextured,lightBlue,t);
+        //     else if(colorNum==1)
+        //         draw_model(cubeTextured,lightRed,t);
+        //     else 
+        //         draw_model(cubeTextured,lightGreen,t);
+        // }
+        // else
+        // {
+        //     clear_buffer();
+        // }
         draw_buffer();
         t++;
-        if(t%30==0)
-            stage++;
-            if (stage>4)
-                stage=0;
+        // if(t%30==0)
+        //     stage++;
+        //     if (stage>4)
+        //         stage=0;
     }   
     freeModel(cubeTextured);
     freeModel(cubeColored);

@@ -27,11 +27,11 @@
 PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 {
     PointLight *light = (PointLight *)malloc(sizeof(PointLight));
-    light->position.x=x;
-    light->position.y=y;
-    light->position.z=z;
-    light->intensity=intensity;
-    light->color=color;
+    light->position.x = x;
+    light->position.y = y;
+    light->position.z = z;
+    light->intensity = intensity;
+    light->color = color;
     return light;
 }
 
@@ -54,15 +54,62 @@ void triangle_center(Triangle3D *triangle, float *center)
     center[2] = (triangle->c.z + triangle->b.z + triangle->c.z) / 3.0f;
 }
 
-void rotate(float *x, float *y, float qt)
+void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
 {
-    float qt_rad = qt * PI2;
-    float c = cos(qt_rad);
-    float s = sin(qt_rad);
-    float temp_x = (c * *x - s * *y);
-    float temp_y = (s * *x + c * *y);
-    *x = temp_x;
-    *y = temp_y;
+    if (transformInfo->transformType == 0)
+        rotate(x, y, z, transformInfo->transformMatrix);
+    if (transformInfo->transformType == 1)
+        translate(x, y, z, transformInfo->transformMatrix);
+    if (transformInfo->transformType == 2)
+        scale(x, y, z, transformInfo->transformMatrix);
+}
+
+void rotate(float *x, float *y, float *z, TransformMatrix *matrix)
+{
+    if (matrix->x != 0.0f)
+    {
+        float qt_rad = matrix->x * PI2;
+        float c = cos(qt_rad);
+        float s = sin(qt_rad);
+        float temp_x = (c * *y - s * *z);
+        float temp_y = (s * *y + c * *z);
+        *y = temp_x;
+        *z = temp_y;
+    }
+    if (matrix->y != 0.0f)
+    {
+        float qt_rad = matrix->y * PI2;
+        float c = cos(qt_rad);
+        float s = sin(qt_rad);
+        float temp_x = (c * *x - s * *z);
+        float temp_y = (s * *x + c * *z);
+        *x = temp_x;
+        *z = temp_y;
+    }
+    if (matrix->z != 0.0f)
+    {
+        float qt_rad = matrix->z * PI2;
+        float c = cos(qt_rad);
+        float s = sin(qt_rad);
+        float temp_x = (c * *x - s * *y);
+        float temp_y = (s * *x + c * *y);
+        *x = temp_x;
+        *y = temp_y;
+    }
+}
+
+void translate(float *x, float *y, float *z, TransformMatrix *matrix)
+{
+    *x += matrix->x;
+    *y += matrix->y;
+    *z += matrix->z;
+}
+
+void scale(float *x, float *y, float *z, TransformMatrix *matrix)
+{
+    *x *= matrix->x;
+    *y *= matrix->y;
+    *z *= matrix->z;
 }
 
 void inf(float *x, float *y, float qt)
@@ -80,46 +127,50 @@ int checkIfTriangleVisible(Triangle2D *triangle)
     int e2y = triangle->c.y - triangle->a.y;
     return (e1x * e2y - e1y * e2x) >= 0;
 }
- 
+
 void shading(uint16_t *color, float lightDistance, PointLight *light)
 {
-    if(lightDistance!=0.5f)
+    if (lightDistance != 0.5f)
     {
-        if(lightDistance>1.9f) lightDistance=1.9f;
-        uint8_t rMesh =(*color>>11)&0x1f;
-        uint8_t gMesh = (*color>>5)&0x3f;
-        uint8_t bMesh = *color&0x1f;
+        if (lightDistance > 1.9f)
+            lightDistance = 1.9f;
+        uint8_t rMesh = (*color >> 11) & 0x1f;
+        uint8_t gMesh = (*color >> 5) & 0x3f;
+        uint8_t bMesh = *color & 0x1f;
 
-        uint8_t rLight = (light->color>>11)&0x1f;
-        uint8_t gLight = (light->color>>5)&0x3f;
-        uint8_t bLight = light->color&0x1f;
+        uint8_t rLight = (light->color >> 11) & 0x1f;
+        uint8_t gLight = (light->color >> 5) & 0x3f;
+        uint8_t bLight = light->color & 0x1f;
 
-        uint8_t r = (rMesh*rLight)/31;
-        uint8_t g = (gMesh*gLight)/63;
-        uint8_t b = (bMesh*bLight)/31;
+        uint8_t r = (rMesh * rLight) / 31;
+        uint8_t g = (gMesh * gLight) / 63;
+        uint8_t b = (bMesh * bLight) / 31;
 
         r = (uint8_t)(r * lightDistance);
         g = (uint8_t)(g * lightDistance);
-        b = (uint8_t)(b * lightDistance);  
+        b = (uint8_t)(b * lightDistance);
 
-
-        *color=(r<<11)|(g<<5)|b;
+        *color = (r << 11) | (g << 5) | b;
     }
 }
 
 uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, int y)
 {
-    float Ba=((triangle->b.y-triangle->c.y)*(x-triangle->c.x)+(triangle->c.x-triangle->b.x)*(y-triangle->c.y))/divider;
-    float Bb=((triangle->c.y-triangle->a.y)*(x-triangle->c.x)+(triangle->a.x-triangle->c.x)*(y-triangle->c.y))/divider;
-    float Bc=1-Ba-Bb;
-    int uv_x=(Ba*triangle->uvA.x+Bb*triangle->uvB.x+Bc*triangle->uvC.x)*mat->textureSize;
-    int uv_y=(Ba*triangle->uvA.y+Bb*triangle->uvB.y+Bc*triangle->uvC.y)*mat->textureSize;
-    if(uv_x<0) uv_x=0;
-    if(uv_x>mat->textureSize)uv_x=mat->textureSize-1;
-    if(uv_y<0) uv_y=0;
-    if(uv_y>mat->textureSize)uv_y=mat->textureSize-1;
-    return mat->texture[uv_y*mat->textureSize+uv_x];
-}   
+    float Ba = ((triangle->b.y - triangle->c.y) * (x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (y - triangle->c.y)) / divider;
+    float Bb = ((triangle->c.y - triangle->a.y) * (x - triangle->c.x) + (triangle->a.x - triangle->c.x) * (y - triangle->c.y)) / divider;
+    float Bc = 1 - Ba - Bb;
+    int uv_x = (Ba * triangle->uvA.x + Bb * triangle->uvB.x + Bc * triangle->uvC.x) * mat->textureSize;
+    int uv_y = (Ba * triangle->uvA.y + Bb * triangle->uvB.y + Bc * triangle->uvC.y) * mat->textureSize;
+    if (uv_x < 0)
+        uv_x = 0;
+    if (uv_x > mat->textureSize)
+        uv_x = mat->textureSize - 1;
+    if (uv_y < 0)
+        uv_y = 0;
+    if (uv_y > mat->textureSize)
+        uv_y = mat->textureSize - 1;
+    return mat->texture[uv_y * mat->textureSize + uv_x];
+}
 
 void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance, float divider, PointLight *light)
 {
@@ -145,11 +196,11 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float
     // x1 = x1 >> 1;
     for (int x = x0; x < x1; x++)
     {
-        uint16_t color=0;
-        if (mat->textureSize==0)
+        uint16_t color = 0;
+        if (mat->textureSize == 0)
             color = mat->diffuse;
-        else 
-            color=texturing(triangle, mat, divider, x, y);
+        else
+            color = texturing(triangle, mat, divider, x, y);
         if (SHADING_ENABLED)
             shading(&color, lightDistance, light);
         draw_pixel(x, y, color);
@@ -227,10 +278,10 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *l
     if (triangle->c.x < triangle->a.x)
         xxd = -1;
 
-    float divider=0.0f;
+    float divider = 0.0f;
 
-    if(mat->textureSize>0)
-        divider=((triangle->b.y-triangle->c.y)*(triangle->a.x-triangle->c.x)+(triangle->c.x-triangle->b.x)*(triangle->a.y-triangle->c.y));
+    if (mat->textureSize > 0)
+        divider = ((triangle->b.y - triangle->c.y) * (triangle->a.x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (triangle->a.y - triangle->c.y));
 
     if (triangle->a.y < triangle->b.y)
     {
@@ -286,9 +337,8 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *l
     }
 }
 
-void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
+void draw_model(Mesh *mesh, PointLight *pLight)
 {
-    float qt = t * 0.01f;
     uint16_t verticesCounter = mesh->verticesCounter;
     float verticesModified[verticesCounter * 3];
     int verticesOnScreen[verticesCounter * 2];
@@ -299,9 +349,11 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
         float x = mesh->vertices[i];
         float y = mesh->vertices[i + 1];
         float z = mesh->vertices[i + 2];
-        rotate(&x, &z, qt);
-        rotate(&y, &z, qt);
-        inf(&x, &y, qt);
+        for(int j=0;j<mesh->transformationsNum;j++)
+        {
+            transform(&x,&y,&z,&mesh->transformations[j]);
+        }
+        // inf(&x, &y, qt);
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
@@ -322,8 +374,8 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
         uint16_t b = mesh->faces[i + 1];
         uint16_t c = mesh->faces[i + 2];
         uint16_t uvA = mesh->uv[i];
-        uint16_t uvB = mesh->uv[i+1];
-        uint16_t uvC = mesh->uv[i+2];
+        uint16_t uvB = mesh->uv[i + 1];
+        uint16_t uvC = mesh->uv[i + 2];
         Triangle2D triangle =
             {
                 {verticesOnScreen[a * 2],
@@ -337,8 +389,7 @@ void draw_model(Mesh *mesh, PointLight *pLight, uint32_t t)
                 {mesh->textureCoords[uvB * 2],
                  mesh->textureCoords[uvB * 2 + 1]},
                 {mesh->textureCoords[uvC * 2],
-                 mesh->textureCoords[uvC * 2 + 1]}
-            };
+                 mesh->textureCoords[uvC * 2 + 1]}};
         if (!checkIfTriangleVisible(&triangle))
             continue;
         // normal vector
