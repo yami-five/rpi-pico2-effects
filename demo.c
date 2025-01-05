@@ -31,23 +31,30 @@ int main(void)
     uint32_t t=0;
     init_sin_lut();
 
-    Mesh* cubeColored = createColoredCube(0x34c9);
+    Mesh* cubeColored = createColoredCube(0xffff);
     Mesh* cubeTextured = createTexturedCube(cube_texture,128);
-    PointLight* lightWhite = createLight(50,50,50,10,0xffff);
-    PointLight* lightRed = createLight(50,50,50,10,0xf800);
-    PointLight* lightBlue = createLight(50,50,50,10,0x07e0);
-    PointLight* lightGreen = createLight(50,50,50,10,0x001f);
+    PointLight* lightWhite = createLight(50,50,50,1.0f,0xffff);
+    PointLight* lightRed = createLight(50,50,50,1.0f,0xf800);
+    PointLight* lightBlue = createLight(50,50,50,1.0f,0x07e0);
+    PointLight* lightGreen = createLight(50,50,50,1.0f,0x001f);
     int x=0;
     int d=1;
     int colorNum=0;
     cubeTextured->transformations=addTransformation(cubeTextured->transformations,&cubeTextured->transformationsNum,0.0f,0.0f,0.0f,0);
+    // cubeTextured->transformations=addTransformation(cubeTextured->transformations,&cubeTextured->transformationsNum,0.0f,1.0f,0.0f,1);
+    // cubeColored->transformations=addTransformation(cubeColored->transformations,&cubeColored->transformationsNum,0.0f,0.0f,0.0f,1);
+    // cubeColored->transformations=addTransformation(cubeColored->transformations,&cubeColored->transformationsNum,1.0f,0.2f,0.2f,2);
     while (1)
     {
         float qt=t*0.05f;
         clear_buffer();
-        draw_model(cubeTextured,lightWhite);
         cubeTextured->transformations[0].transformMatrix->x=qt;
         cubeTextured->transformations[0].transformMatrix->y=qt;
+        draw_model(cubeTextured,lightWhite);
+        // cubeColored->transformations[0].transformMatrix->x-=qt;
+        // cubeColored->transformations[0].transformMatrix->y-=qt;
+        // cubeColored->transformations[0].transformMatrix->z-=qt;
+        // draw_model(cubeColored,lightWhite);
         // if(stage==0)
         // {
         //     x+=10*d;

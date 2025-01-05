@@ -61,7 +61,7 @@ TransformInfo *addTransformation(TransformInfo *currentTransformations, int *cur
 
     *currentTransformationsNum+=1;
     TransformInfo *newTransformations = (TransformInfo *)realloc(currentTransformations, *currentTransformationsNum * sizeof(TransformInfo));
-    newTransformations->transformMatrix = (TransformMatrix *)malloc(sizeof(TransformMatrix));
+    newTransformations[*currentTransformationsNum - 1].transformMatrix = (TransformMatrix *)malloc(sizeof(TransformMatrix));
     newTransformations[*currentTransformationsNum - 1].transformType = transformationType;
     newTransformations[*currentTransformationsNum - 1].transformMatrix->x = x;
     newTransformations[*currentTransformationsNum - 1].transformMatrix->y = y;

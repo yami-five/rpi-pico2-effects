@@ -146,9 +146,9 @@ void shading(uint16_t *color, float lightDistance, PointLight *light)
         uint8_t g = (gMesh * gLight) / 63;
         uint8_t b = (bMesh * bLight) / 31;
 
-        r = (uint8_t)(r * lightDistance);
-        g = (uint8_t)(g * lightDistance);
-        b = (uint8_t)(b * lightDistance);
+        r = (uint8_t)(r * lightDistance * light->intensity);
+        g = (uint8_t)(g * lightDistance * light->intensity);
+        b = (uint8_t)(b * lightDistance * light->intensity);
 
         *color = (r << 11) | (g << 5) | b;
     }

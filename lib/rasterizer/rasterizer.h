@@ -33,7 +33,7 @@ typedef struct
 typedef struct
 {
     Vertex3D position;
-    uint8_t intensity;
+    float intensity;
     uint16_t color;
 } PointLight;
 
