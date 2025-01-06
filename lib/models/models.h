@@ -28,7 +28,7 @@ typedef struct
     uint16_t facesCounter;
     float *vertices;
     uint16_t *faces;
-    uint16_t *textureCoords;
+    float *textureCoords;
     uint16_t *uv;
     Material *mat;
     TransformInfo *transformations;
@@ -38,6 +38,9 @@ typedef struct
 Mesh* createColoredCube(uint16_t color);
 Mesh* createTexturedCube(uint16_t *texture, int textureSize);
 Mesh* createCube(Material *mat);
+
+Mesh* createTexturedPlane(uint16_t *texture, int textureSize);
+Mesh* createPlane(Material *mat);
 
 TransformInfo *addTransformation(TransformInfo *currentTransformations, int *currentTransformationsNum, float x, float y, float z, uint8_t transformationType);
 

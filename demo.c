@@ -32,74 +32,70 @@ int main(void)
     init_sin_lut();
 
     Mesh* cubeColored = createColoredCube(0xffff);
-    Mesh* cubeTextured = createTexturedCube(cube_texture,128);
-    PointLight* lightWhite = createLight(50,50,50,1.0f,0xffff);
-    PointLight* lightRed = createLight(50,50,50,1.0f,0xf800);
-    PointLight* lightBlue = createLight(50,50,50,1.0f,0x07e0);
-    PointLight* lightGreen = createLight(50,50,50,1.0f,0x001f);
+    Mesh* cubeTextured1 = createTexturedCube(wall_texture,128);
+    Mesh* cubeTextured2 = createTexturedCube(cube_texture,128);
+    Mesh* cubeTextured3 = createTexturedCube(cube_texture,128);
+    Mesh* cubeTextured4 = createTexturedCube(wall_texture,128);
+    // Mesh* wallTextured1 = createTexturedPlane(wall_texture,128);
+    // Mesh* wallTextured2 = createTexturedPlane(wall_texture,128);
+    PointLight* lightWhite = createLight(0,0,50,1.0f,0xffff);
+    PointLight* lightRed = createLight(0,0,50,1.0f,0xf800);
+    PointLight* lightBlue = createLight(0,0,50,1.0f,0x07e0);
+    PointLight* lightGreen = createLight(0,0,50,1.0f,0x001f);
     int x=0;
     int d=1;
     int colorNum=0;
-    cubeTextured->transformations=addTransformation(cubeTextured->transformations,&cubeTextured->transformationsNum,0.0f,0.0f,0.0f,0);
-    // cubeTextured->transformations=addTransformation(cubeTextured->transformations,&cubeTextured->transformationsNum,0.0f,1.0f,0.0f,1);
-    // cubeColored->transformations=addTransformation(cubeColored->transformations,&cubeColored->transformationsNum,0.0f,0.0f,0.0f,1);
-    // cubeColored->transformations=addTransformation(cubeColored->transformations,&cubeColored->transformationsNum,1.0f,0.2f,0.2f,2);
+    cubeTextured1->transformations=addTransformation(cubeTextured1->transformations,&cubeTextured1->transformationsNum,0.0f,0.0f,0.0f,0);
+    cubeTextured2->transformations=addTransformation(cubeTextured2->transformations,&cubeTextured2->transformationsNum,0.0f,0.0f,0.0f,0);
+    cubeTextured3->transformations=addTransformation(cubeTextured3->transformations,&cubeTextured3->transformationsNum,0.0f,0.0f,0.0f,0);
+    cubeTextured4->transformations=addTransformation(cubeTextured4->transformations,&cubeTextured4->transformationsNum,0.0f,0.0f,0.0f,0);
+
+    cubeTextured1->transformations=addTransformation(cubeTextured1->transformations,&cubeTextured1->transformationsNum,3.0f,2.0f,0.0f,1);
+    cubeTextured2->transformations=addTransformation(cubeTextured2->transformations,&cubeTextured2->transformationsNum,3.0f,-2.0f,0.0f,1);
+    cubeTextured3->transformations=addTransformation(cubeTextured3->transformations,&cubeTextured3->transformationsNum,-3.0f,2.0f,0.0f,1);
+    cubeTextured4->transformations=addTransformation(cubeTextured4->transformations,&cubeTextured4->transformationsNum,-3.0f,-2.0f,0.0f,1);
+    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,0.875f,0.1f,0.0f,0);
+    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,5.0f,5.0f,0.0f,2);
+    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,0.0f,2.5f,0.0f,1);
+
+    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,0.875f,0.1f,0.0f,0);
+    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,5.0f,5.0f,0.0f,2);
+    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,-5.0f,2.5f,0.0f,1);
+    float lightIntensity[6]={1.0f,0.75f,0.3f,0.1f,0.5f,0.75f};
     while (1)
     {
-        float qt=t*0.05f;
+        lightWhite->intensity=lightIntensity[t%6];
+        lightRed->intensity=lightIntensity[(t+1)%6];
+        lightGreen->intensity=lightIntensity[(t+2)%6];
+        lightBlue->intensity=lightIntensity[(t+3)%6];
+        float qt=t*0.01f;
         clear_buffer();
-        cubeTextured->transformations[0].transformVector->x=qt;
-        cubeTextured->transformations[0].transformVector->y=qt;
-        draw_model(cubeTextured,lightWhite);
-        // cubeColored->transformations[0].transformVector->x-=qt;
-        // cubeColored->transformations[0].transformVector->y-=qt;
-        // cubeColored->transformations[0].transformVector->z-=qt;
-        // draw_model(cubeColored,lightWhite);
-        // if(stage==0)
-        // {
-        //     x+=10*d;
-        //     if(x>=80) d=-1;
-        //     if(x<=0) d=1;
-        //     draw_image(image1,240,240,x,0);
-        // }
-        // else if(stage==1)
-        //     draw_model(cubeColored,lightWhite,t);
-        //     // draw_pixel(10,10,0xaaaa);
-        //     // draw_pixel(310,230,0xaaaa);
-        //     // draw_pixel(310,10,0xaaaa);
-        //     // draw_pixel(10,230,0xaaaa);
-        // else if(stage==2)
-        //     plasma(t);
-        // else if(stage==3)
-        // {
-        //     draw_model(cubeTextured,lightWhite,t);
-        // }
-        // else if(stage==4)
-        // {
-        //     if(t%10)
-        //     {
-        //         colorNum++;
-        //         if(colorNum>2)colorNum=0;    
-        //     }
-        //     if(colorNum==0)
-        //         draw_model(cubeTextured,lightBlue,t);
-        //     else if(colorNum==1)
-        //         draw_model(cubeTextured,lightRed,t);
-        //     else 
-        //         draw_model(cubeTextured,lightGreen,t);
-        // }
-        // else
-        // {
-        //     clear_buffer();
-        // }
+        // draw_model(wallTextured1,lightWhite);
+        // draw_model(wallTextured2,lightWhite);
+        cubeTextured1->transformations[0].transformVector->x=qt+0.05f;
+        cubeTextured1->transformations[0].transformVector->y=qt+0.05f;
+        cubeTextured1->transformations[0].transformVector->z=qt+0.05f;
+        draw_model(cubeTextured1,lightWhite);
+
+        cubeTextured2->transformations[0].transformVector->x=qt+0.2f;
+        cubeTextured2->transformations[0].transformVector->y=qt+0.2f;;
+        cubeTextured2->transformations[0].transformVector->z=qt+0.2f;;
+        draw_model(cubeTextured2,lightRed);
+
+        cubeTextured3->transformations[0].transformVector->x=qt;
+        cubeTextured3->transformations[0].transformVector->z=qt;
+        draw_model(cubeTextured3,lightBlue);
+
+        cubeTextured4->transformations[0].transformVector->x=qt+1.0f;
+        cubeTextured4->transformations[0].transformVector->y=qt+1.0f;
+        cubeTextured4->transformations[0].transformVector->z=qt+1.0f;
+        draw_model(cubeTextured4,lightGreen);
+        // wallTextured1->transformations[0].transformVector->x=qt;
+        
         draw_buffer();
         t++;
-        // if(t%30==0)
-        //     stage++;
-        //     if (stage>4)
-        //         stage=0;
     }   
-    freeModel(cubeTextured);
+    freeModel(cubeTextured1);
     freeModel(cubeColored);
     return 0;
 }
