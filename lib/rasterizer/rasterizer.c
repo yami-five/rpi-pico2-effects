@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FOCAL_LENGTH 96
+#define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
 #define HEIGHT_DISPLAY 240
 #define WIDTH_DOUBLED 640
@@ -21,6 +21,7 @@
 #define SCALE_FACTOR 10000
 #define PI 3.141592653589793f
 #define PI2 6.283185307179586f
+#define TRIANGLE_CENTER_DIVIDER 0.333333333333333f
 
 #define SHADING_ENABLED 1
 
@@ -49,9 +50,10 @@ void normalize_vector(float *vector3)
 
 void triangle_center(Triangle3D *triangle, float *center)
 {
-    center[0] = (triangle->a.x + triangle->b.x + triangle->c.x) / 3.0f;
-    center[1] = (triangle->a.y + triangle->b.y + triangle->c.y) / 3.0f;
-    center[2] = (triangle->c.z + triangle->b.z + triangle->c.z) / 3.0f;
+
+    center[0] = (triangle->a.x + triangle->b.x + triangle->c.x) * TRIANGLE_CENTER_DIVIDER;
+    center[1] = (triangle->a.y + triangle->b.y + triangle->c.y) * TRIANGLE_CENTER_DIVIDER;
+    center[2] = (triangle->c.z + triangle->b.z + triangle->c.z) * TRIANGLE_CENTER_DIVIDER;
 }
 
 void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
@@ -66,11 +68,11 @@ void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
 
 void rotate(float *x, float *y, float *z, TransformVector *vector)
 {
+    float qt_rad = vector->x * PI2;
+    float c = cosf(qt_rad);
+    float s = sinf(qt_rad);
     if (vector->x != 0.0f)
     {
-        float qt_rad = vector->x * PI2;
-        float c = cos(qt_rad);
-        float s = sin(qt_rad);
         float temp_x = (c * *y - s * *z);
         float temp_y = (s * *y + c * *z);
         *y = temp_x;
@@ -78,9 +80,6 @@ void rotate(float *x, float *y, float *z, TransformVector *vector)
     }
     if (vector->y != 0.0f)
     {
-        float qt_rad = vector->y * PI2;
-        float c = cos(qt_rad);
-        float s = sin(qt_rad);
         float temp_x = (c * *x - s * *z);
         float temp_y = (s * *x + c * *z);
         *x = temp_x;
@@ -88,9 +87,6 @@ void rotate(float *x, float *y, float *z, TransformVector *vector)
     }
     if (vector->z != 0.0f)
     {
-        float qt_rad = vector->z * PI2;
-        float c = cos(qt_rad);
-        float s = sin(qt_rad);
         float temp_x = (c * *x - s * *y);
         float temp_y = (s * *x + c * *y);
         *x = temp_x;
@@ -115,8 +111,8 @@ void scale(float *x, float *y, float *z, TransformVector *vector)
 void inf(float *x, float *y, float qt)
 {
     float qt_rad = qt * PI2;
-    *x += 2.0f * (cos(qt_rad));
-    *y += 2.0f * cos(qt_rad) * sin(qt_rad);
+    *x += 2.0f * (cosf(qt_rad));
+    *y += 2.0f * cosf(qt_rad) * sinf(qt_rad);
 }
 
 int checkIfTriangleVisible(Triangle2D *triangle)
@@ -125,6 +121,7 @@ int checkIfTriangleVisible(Triangle2D *triangle)
     int e1y = triangle->b.y - triangle->a.y;
     int e2x = triangle->c.x - triangle->a.x;
     int e2y = triangle->c.y - triangle->a.y;
+    
     return (e1x * e2y - e1y * e2x) >= 0;
 }
 
@@ -156,8 +153,8 @@ void shading(uint16_t *color, float lightDistance, PointLight *light)
 
 uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, int y)
 {
-    float Ba = ((triangle->b.y - triangle->c.y) * (x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (y - triangle->c.y)) / divider;
-    float Bb = ((triangle->c.y - triangle->a.y) * (x - triangle->c.x) + (triangle->a.x - triangle->c.x) * (y - triangle->c.y)) / divider;
+    float Ba = ((triangle->b.y - triangle->c.y) * (x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (y - triangle->c.y)) * divider;
+    float Bb = ((triangle->c.y - triangle->a.y) * (x - triangle->c.x) + (triangle->a.x - triangle->c.x) * (y - triangle->c.y)) * divider;
     float Bc = 1 - Ba - Bb;
     int uv_x = (Ba * triangle->uvA.x + Bb * triangle->uvB.x + Bc * triangle->uvC.x) * mat->textureSize;
     int uv_y = (Ba * triangle->uvA.y + Bb * triangle->uvB.y + Bc * triangle->uvC.y) * mat->textureSize;
@@ -281,7 +278,7 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *l
     float divider = 0.0f;
 
     if (mat->textureSize > 0)
-        divider = ((triangle->b.y - triangle->c.y) * (triangle->a.x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (triangle->a.y - triangle->c.y));
+        divider = 1.0f/((triangle->b.y - triangle->c.y) * (triangle->a.x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (triangle->a.y - triangle->c.y));
 
     if (triangle->a.y < triangle->b.y)
     {
@@ -316,7 +313,6 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *l
         if (triangle->c.x < triangle->b.x)
             xd = -1;
 
-        int test = triangle->c.y;
         while (y <= triangle->c.y && y < HEIGHT_DISPLAY)
         {
             rasterize(y, x, xx, triangle, mat, lightDistance, divider, light);
@@ -361,13 +357,12 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         z += 5.0f;
         x = x * FOCAL_LENGTH / z + WIDTH_HALF;
         y = y * FOCAL_LENGTH / z + HEIGHT_HALF;
-        verticesOnScreen[vsc] = (int)x;
-        verticesOnScreen[vsc + 1] = (int)y;
+        verticesOnScreen[vsc] = (int)x+0.5f;
+        verticesOnScreen[vsc + 1] = (int)y+0.5f;
         vsc += 2;
     }
     // flat shading
 
-    // for (uint16_t i = 6; i<12; i += 3)
     for (uint16_t i = 0; i < mesh->facesCounter * 3; i += 3)
     {
         uint16_t a = mesh->faces[i];
