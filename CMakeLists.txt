@@ -44,6 +44,7 @@ add_subdirectory(lib/painter)
 add_subdirectory(lib/lcd)
 add_subdirectory(lib/models)
 add_subdirectory(lib/gfx)
+add_subdirectory(lib/fpa)
 include_directories(./lib/Config)
 include_directories(./lib/effects)
 include_directories(./lib/rasterizer)
@@ -51,6 +52,7 @@ include_directories(./lib/painter)
 include_directories(./lib/lcd)
 include_directories(./lib/models)
 include_directories(./lib/gfx)
+include_directories(./lib/fpa)
 
 
 add_executable(demo demo.c )
@@ -63,7 +65,7 @@ pico_enable_stdio_uart(demo 1)
 pico_enable_stdio_usb(demo 0)
 
 target_link_libraries(demo
-        pico_stdlib Config effects rasterizer painter lcd models gfx)
+        pico_stdlib Config effects rasterizer painter lcd models gfx fpa)
 
 # Add the standard include files to the build
 target_include_directories(demo PRIVATE

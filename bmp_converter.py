@@ -1,6 +1,6 @@
 from PIL import Image
 import io
-image = Image.open("assets\wall_texture.bmp")
+image = Image.open(r"assets\box_texture.bmp")
 
 print(image.size)
 (img_x,img_y)=image.size

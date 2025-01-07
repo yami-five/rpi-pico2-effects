@@ -4,12 +4,13 @@
 #include "models.h"
 #include "painter.h"
 #include "rasterizer.h"
+#include "fpa.h"
 
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FOCAL_LENGTH 90
+#define FOCAL_LENGTH 90.0f
 #define WIDTH_DISPLAY 320
 #define HEIGHT_DISPLAY 240
 #define WIDTH_DOUBLED 640
@@ -18,9 +19,6 @@
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
 #define FIRE_FLOOR_ADR 76480
-#define SCALE_FACTOR 10000
-#define PI 3.141592653589793f
-#define PI2 6.283185307179586f
 #define TRIANGLE_CENTER_DIVIDER 0.333333333333333f
 
 #define SHADING_ENABLED 1
@@ -38,7 +36,15 @@ PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 
 float vector3_length(float *vector)
 {
-    return sqrtf(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+    // int32_t v0=floatToFixed(vector[0]);
+    // v0=fixedPow(v0);
+    // int32_t v1=floatToFixed(vector[1]);
+    // v0=fixedPow(v1);
+    // int32_t v2=floatToFixed(vector[2]);
+    // v0=fixedPow(v2);
+    // float value = fixedToFloat(v0+v1+v2);
+    // return sqrtf(value);
+    return fastSqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
 }
 
 void normalize_vector(float *vector3)
@@ -50,7 +56,6 @@ void normalize_vector(float *vector3)
 
 void triangle_center(Triangle3D *triangle, float *center)
 {
-
     center[0] = (triangle->a.x + triangle->b.x + triangle->c.x) * TRIANGLE_CENTER_DIVIDER;
     center[1] = (triangle->a.y + triangle->b.y + triangle->c.y) * TRIANGLE_CENTER_DIVIDER;
     center[2] = (triangle->c.z + triangle->b.z + triangle->c.z) * TRIANGLE_CENTER_DIVIDER;
@@ -68,11 +73,11 @@ void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
 
 void rotate(float *x, float *y, float *z, TransformVector *vector)
 {
-    float qt_rad = vector->x * PI2;
-    float c = cosf(qt_rad);
-    float s = sinf(qt_rad);
     if (vector->x != 0.0f)
     {
+        float qt_rad = vector->x * PI2;
+        float c = fastCos(qt_rad);
+        float s = fastSin(qt_rad);
         float temp_x = (c * *y - s * *z);
         float temp_y = (s * *y + c * *z);
         *y = temp_x;
@@ -80,6 +85,9 @@ void rotate(float *x, float *y, float *z, TransformVector *vector)
     }
     if (vector->y != 0.0f)
     {
+        float qt_rad = vector->y * PI2;
+        float c = fastCos(qt_rad);
+        float s = fastSin(qt_rad);
         float temp_x = (c * *x - s * *z);
         float temp_y = (s * *x + c * *z);
         *x = temp_x;
@@ -87,6 +95,9 @@ void rotate(float *x, float *y, float *z, TransformVector *vector)
     }
     if (vector->z != 0.0f)
     {
+        float qt_rad = vector->z * PI2;
+        float c = fastCos(qt_rad);
+        float s = fastSin(qt_rad);
         float temp_x = (c * *x - s * *y);
         float temp_y = (s * *x + c * *y);
         *x = temp_x;
@@ -111,8 +122,8 @@ void scale(float *x, float *y, float *z, TransformVector *vector)
 void inf(float *x, float *y, float qt)
 {
     float qt_rad = qt * PI2;
-    *x += 2.0f * (cosf(qt_rad));
-    *y += 2.0f * cosf(qt_rad) * sinf(qt_rad);
+    *x += 2.0f * (fastCos(qt_rad));
+    *y += 2.0f * fastCos(qt_rad) * fastSin(qt_rad);
 }
 
 int checkIfTriangleVisible(Triangle2D *triangle)
@@ -354,9 +365,15 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
         // calculates vertex coords on the screen
-        z += 5.0f;
-        x = x * FOCAL_LENGTH / z + WIDTH_HALF;
-        y = y * FOCAL_LENGTH / z + HEIGHT_HALF;
+        int32_t xF=floatToFixed(x);
+        int32_t yF=floatToFixed(y);
+        int32_t zF=floatToFixed(z);
+        int32_t focalLenF = floatToFixed(FOCAL_LENGTH);
+        zF+=(5*SCALE_FACTOR);
+        xF=(xF*focalLenF/zF)+(SCALE_FACTOR*WIDTH_HALF);
+        yF=(yF*focalLenF/zF)+(SCALE_FACTOR*HEIGHT_HALF);
+        x = fixedToFloat(xF);
+        y = fixedToFloat(yF);
         verticesOnScreen[vsc] = (int)x+0.5f;
         verticesOnScreen[vsc + 1] = (int)y+0.5f;
         vsc += 2;

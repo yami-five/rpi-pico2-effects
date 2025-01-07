@@ -5,7 +5,7 @@
 #include "painter.h"
 #include "models.h"
 #include "gfx.h"
-#include <stdlib.h>
+#include "fpa.h"
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -18,7 +18,8 @@
 
 int main(void)
 {
-    int stage=0;
+    initSinCos();
+    // int stage=0;
     if(DEV_Module_Init()!=0){
         return -1;
     }
@@ -33,12 +34,10 @@ int main(void)
     // init_sin_lut();
 
     Mesh* cubeColored = createColoredCube(0xffff);
-    Mesh* cubeTextured1 = createTexturedCube(wall_texture,128);
-    Mesh* cubeTextured2 = createTexturedCube(cube_texture,128);
-    Mesh* cubeTextured3 = createTexturedCube(cube_texture,128);
-    Mesh* cubeTextured4 = createTexturedCube(wall_texture,128);
-    // Mesh* wallTextured1 = createTexturedPlane(wall_texture,128);
-    // Mesh* wallTextured2 = createTexturedPlane(wall_texture,128);
+    Mesh* cubeTextured1 = createTexturedCube(wall_texture,32);
+    Mesh* cubeTextured2 = createTexturedCube(box_texture,32);
+    Mesh* cubeTextured3 = createTexturedCube(box_texture,32);
+    Mesh* cubeTextured4 = createTexturedCube(wall_texture,32);
     PointLight* lightWhite = createLight(0,0,50,1.0f,0xffff);
     PointLight* lightRed = createLight(0,0,50,1.0f,0xf800);
     PointLight* lightBlue = createLight(0,0,50,1.0f,0x07e0);
@@ -55,13 +54,6 @@ int main(void)
     cubeTextured2->transformations=addTransformation(cubeTextured2->transformations,&cubeTextured2->transformationsNum,3.0f,-2.0f,0.0f,1);
     cubeTextured3->transformations=addTransformation(cubeTextured3->transformations,&cubeTextured3->transformationsNum,-3.0f,2.0f,0.0f,1);
     cubeTextured4->transformations=addTransformation(cubeTextured4->transformations,&cubeTextured4->transformationsNum,-3.0f,-2.0f,0.0f,1);
-    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,0.875f,0.1f,0.0f,0);
-    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,5.0f,5.0f,0.0f,2);
-    // wallTextured1->transformations=addTransformation(wallTextured1->transformations,&wallTextured1->transformationsNum,0.0f,2.5f,0.0f,1);
-
-    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,0.875f,0.1f,0.0f,0);
-    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,5.0f,5.0f,0.0f,2);
-    // wallTextured2->transformations=addTransformation(wallTextured2->transformations,&wallTextured2->transformationsNum,-5.0f,2.5f,0.0f,1);
     float lightIntensity[6]={1.0f,0.75f,0.3f,0.1f,0.5f,0.75f};
     while (1)
     {
@@ -71,8 +63,6 @@ int main(void)
         lightBlue->intensity=lightIntensity[(t+3)%6];
         float qt=t*0.01f;
         clear_buffer();
-        // draw_model(wallTextured1,lightWhite);
-        // draw_model(wallTextured2,lightWhite);
         cubeTextured1->transformations[0].transformVector->x=qt+0.05f;
         cubeTextured1->transformations[0].transformVector->y=qt+0.05f;
         cubeTextured1->transformations[0].transformVector->z=qt+0.05f;
@@ -95,7 +85,6 @@ int main(void)
         
         draw_buffer();
         t++;
-        malloc_stats();
     }   
     freeModel(cubeTextured1);
     freeModel(cubeColored);
