@@ -5,6 +5,7 @@
 #include "painter.h"
 #include "models.h"
 #include "gfx.h"
+#include <stdlib.h>
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -27,9 +28,9 @@ int main(void)
     clear_buffer();
     draw_buffer();
     
-    init_fire();
+    // init_fire();
     uint32_t t=0;
-    init_sin_lut();
+    // init_sin_lut();
 
     Mesh* cubeColored = createColoredCube(0xffff);
     Mesh* cubeTextured1 = createTexturedCube(wall_texture,128);
@@ -94,6 +95,7 @@ int main(void)
         
         draw_buffer();
         t++;
+        malloc_stats();
     }   
     freeModel(cubeTextured1);
     freeModel(cubeColored);
