@@ -1,13 +1,14 @@
-#include "effects.h"
-#include <stdint.h>
-#include "pico/stdlib.h"
-#include <math.h>
 #include "DEV_Config.h"
+#include "effects.h"
+#include "fpa.h"
 #include "hardware/divider.h"
-#include "pico/float.h"
-#include "pico/multicore.h"
 #include "hardware/sync.h"
 #include "painter.h"
+#include "pico/float.h"
+#include "pico/multicore.h"
+#include "pico/stdlib.h"
+#include <math.h>
+#include <stdint.h>
 
 #define WIDTH_DISPLAY 320
 #define HEIGHT_DISPLAY 240
@@ -16,58 +17,64 @@
 #define ARRAY_SIZE 153600
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
-#define FIRE_FLOOR_ADR 76480
-#define SCALE_FACTOR 10000
-#define PI 3.141592653589793f
-#define PI2 6.283185307179586f
+#define FIXED_128 floatToFixed(128.0f)
+#define FIXED_16 floatToFixed(16.0f)
+#define FIXED_0128 floatToFixed(0.128f)
+#define FIXED_0008 floatToFixed(0.008f)
+#define FIXED_0004 floatToFixed(0.004f)
+#define FIXED_0001 floatToFixed(0.001f)
 
 void plasma(uint32_t t)
 {
-    // uint64_t start_time = time_us_64();
-    float fst = sinf(t * 0.01f * PI2);
+    int32_t fst = t * fixedMul(PI2_FIXED, FIXED_0001);
     uint8_t line[ARRAY_SIZE];
 
     for (uint16_t i = 0; i < WIDTH_DISPLAY; i += 2)
     {
-        uint32_t i2 = i * i;
+        uint32_t i2 = i * i * SCALE_FACTOR;
         uint32_t imw = i - WIDTH_HALF;
         imw = imw * imw;
-        float line1 = 128.0f + (16.0f * sinf((i * 0.0128f + fst) * PI2));
+        float line1 = fixedMul((i * FIXED_0128 + fst), PI2_FIXED);
+        line1 = fixedMul(FIXED_16, line1) + FIXED_128;
         uint32_t line_adr = i * HEIGHT_DOUBLED;
         for (uint16_t j = 0; j < HEIGHT_DISPLAY; j += 2)
         {
             uint32_t jmh = j - HEIGHT_HALF;
             jmh = jmh * jmh;
-            uint32_t color_index1 = line1 + 128.0f + (16.0f * sinf((j * 0.008f + fst) * PI2)) + 128.0f + (16.0f * sinf((sqrtf(imw + jmh) * 0.0128f + fst) * PI2)) + 128.0f + (16.0f * sinf((sqrtf(i2 + j * j) * 0.004f + fst) * PI2));
+            uint32_t color_index1 = line1 + FIXED_128;
+            
+            color_index1 += fixedMul(
+                FIXED_16, fastSin(fixedMul(j * FIXED_0008 + fst, PI2_FIXED)));
+
+            color_index1 += FIXED_128 + fixedMul(
+                FIXED_16, fastSin(
+                    fixedMul((
+                        fixedMul(
+                            fastSqrt(
+                                imw * SCALE_FACTOR + jmh * SCALE_FACTOR
+                            ), FIXED_0128
+                        ) + fst
+                    ), PI2_FIXED)
+                )
+            );
+
+            color_index1 += FIXED_128 + fixedMul(
+                FIXED_16, fastSin(
+                    fixedMul((
+                        fastSqrt(i2 + j * j * SCALE_FACTOR) * FIXED_0004 + fst
+                    ), PI2_FIXED)
+                )
+            );
+
+            color_index1 /= SCALE_FACTOR;
 
             uint16_t color = palette[(color_index1 / 4) % 16];
             draw_pixel(i, j, color);
             draw_pixel(i + 1, j, color);
             draw_pixel(i, j + 1, color);
             draw_pixel(i + 1, j + 1, color);
-            // uint16_t j2=j*2;
-
-            // line[line_adr+j2+1]=color&0xff;
-            // line[line_adr+j2]=(color>>8)&0xff;
-
-            // line[line_adr+j2+3]=color&0xff;
-            // line[line_adr+j2+2]=(color>>8)&0xff;
-
-            // line[line_adr+j2+1+HEIGHT_DOUBLED]=color&0xff;
-            // line[line_adr+j2+HEIGHT_DOUBLED]=(color>>8)&0xff;
-
-            // line[line_adr+j2+3+HEIGHT_DOUBLED]=color&0xff;
-            // line[line_adr+j2+2+HEIGHT_DOUBLED]=(color>>8)&0xff;
         }
     }
-    // uint64_t end_time = time_us_64();
-    // uint64_t duration_us = end_time - start_time;
-    // divmod_result_t div_result = hw_divider_divmod_u32(duration_us,1000);
-    // duration_us=to_quotient_u32(div_result);
-    // DEV_Digital_Write(LCD_DC_PIN, 1);
-    // DEV_Digital_Write(LCD_CS_PIN, 0);
-    // DEV_SPI_Write_nByte(line,ARRAY_SIZE);
-    // DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 
 void init_fire()
