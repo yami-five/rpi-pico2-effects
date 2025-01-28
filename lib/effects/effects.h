@@ -6,9 +6,6 @@
 void init_fire();
 void draw_fire();
 void plasma(uint32_t t);
-float fast_sqrt(float x);
-float fast_sin(float x);
-void init_sin_lut();
 static int16_t sin_lut[LUT_SIZE];
 extern const unsigned char painting[];
 extern uint8_t fire_arr[76800];

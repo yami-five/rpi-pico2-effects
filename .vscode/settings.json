@@ -58,6 +58,7 @@
         "rasterizer.h": "c",
         "painter.h": "c",
         "stdlib.h": "c",
-        "models.h": "c"
+        "models.h": "c",
+        "fpa.h": "c"
     }
 }

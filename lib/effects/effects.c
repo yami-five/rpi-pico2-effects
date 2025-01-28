@@ -21,35 +21,6 @@
 #define PI 3.141592653589793f
 #define PI2 6.283185307179586f
 
-void init_sin_lut()
-{
-    for (int i = 0; i < LUT_SIZE; i++)
-    {
-        sin_lut[i] = (int16_t)(10000 * sinf(i * PI / 180.0));
-    }
-}
-
-float fast_sqrt(float x)
-{
-    float y = x;
-    int i = *(int *)&y;
-    i = (i + 0x3f800000) >> 1;
-    y = *(float *)&i;
-    y = (y + x / y) * 0.5f;
-    return y;
-}
-
-float fast_sin(float x)
-{
-    int32_t degrees = (int32_t)(x * 60.0f);
-    degrees %= 360;
-    if (degrees < 0)
-    {
-        degrees += 360;
-    }
-    return sin_lut[degrees] / (float)SCALE_FACTOR;
-}
-
 void plasma(uint32_t t)
 {
     // uint64_t start_time = time_us_64();

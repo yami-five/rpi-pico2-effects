@@ -1,50 +1,46 @@
 #include "fpa.h"
 
-float sin_table[TABLE_SIZE];
-float cos_table[TABLE_SIZE];
+int32_t sin_table[TABLE_SIZE];
+int32_t cos_table[TABLE_SIZE];
 
 int32_t floatToFixed(float value)
 {
-    return (int32_t)(value * (1 << SHIFT_FACTOR));
+    return (int32_t)(value * SCALE_FACTOR);
 }
 
 int32_t fixedToFloat(int32_t value)
 {
-    return (float)value / (1 << SHIFT_FACTOR);
+    return (float)value / SCALE_FACTOR;
 }
 
 int32_t fixedAdd(int32_t a, int32_t b)
 {
-    return a+b;
+    return a + b;
 }
 
 int32_t fixedAdd3(int32_t a, int32_t b, int32_t c)
 {
-    return a+b+c;
+    return a + b + c;
 }
 
 int32_t fixedSub(int32_t a, int32_t b)
 {
-    return a-b;
+    return a - b;
 }
 
-int32_t fixedMul(int32_t a, int32_t b)
+int64_t fixedMul(int32_t a, int32_t b)
 {
-    int32_t fixedA = floatToFixed(a);
-    int32_t fixedB = floatToFixed(b);
-    int64_t result = (int64_t)fixedA * fixedB;
-    return (int32_t)(result/SCALE_FACTOR);
+    int64_t result = (int64_t)a * b;
+    return (int64_t)(result / SCALE_FACTOR);
 }
 
 int32_t fixedDiv(int32_t a, int32_t b)
 {
-    int32_t fixedA = floatToFixed(a);
-    int32_t fixedB = floatToFixed(b);
-    int64_t result = ((int64_t)fixedA * SCALE_FACTOR) / fixedB;
+    int64_t result = ((int64_t)a * SCALE_FACTOR) / b;
     return (int32_t)result;
 }
 
-int32_t fixedPow(int32_t a)
+int64_t fixedPow(int32_t a)
 {
     return fixedMul(a, a);
 }
@@ -54,43 +50,56 @@ void initSinCos()
     for (int32_t i = 0; i < TABLE_SIZE; i++)
     {
         float angle = i * RESOLUTION;
-        sin_table[i] = sinf(angle);
-        cos_table[i] = cosf(angle);
+        sin_table[i] = floatToFixed(sinf(angle));
+        cos_table[i] = floatToFixed(cosf(angle));
     }
 }
 
-float fastSin(float value)
+int32_t fastSin(int32_t value)
 {
-    int32_t index = (int32_t)(value / RESOLUTION) % TABLE_SIZE;
+    int32_t index = value % TABLE_SIZE;
     if (index < 0)
         index += TABLE_SIZE;
     return sin_table[index];
 }
 
-float fastCos(float value)
+int32_t fastCos(int32_t value)
 {
-    int32_t index = (int32_t)(value / RESOLUTION) % TABLE_SIZE;
+    int32_t index = value % TABLE_SIZE;
     if (index < 0)
         index += TABLE_SIZE;
     return cos_table[index];
 }
 
-float fastInvSqrt(float value)
+int32_t fastInvSqrt(int32_t value)
 {
-    long i;
-    float x2, y;
-    const float threehalfs = 1.5F;
+    int32_t x2, y;
+    const int32_t threehalfs = 96;
+    x2 = value >> 1;
 
-    x2 = value * 0.5F;
-    y = value;
-    i = *(long *)&y;
-    i = 0x5f3759df - (i >> 1);
-    y = *(float *)&i;
-    y = y * (threehalfs - (x2 * y * y));
+    y = 12288 - (value >> 1);
+
+    int32_t ySquared = fixedPow(y);
+    int32_t product = fixedMul(x2, ySquared);
+    int32_t correction = threehalfs - product;
+    y = fixedMul(y, correction);
+
     return y;
 }
 
-float fastSqrt(float value)
+int32_t fastSqrt(int64_t value)
 {
-    return value * fastInvSqrt(value);
+    int64_t x = value;
+    int64_t result = value;
+    int64_t oldResult=0;
+    uint8_t i=0;
+    while(result!=oldResult)
+    {
+        oldResult=result;
+        result = (result + fixedDiv(x, result)) >> 1;
+        i++;
+        if(i==9) 
+            break;
+    }
+    return result;
 }

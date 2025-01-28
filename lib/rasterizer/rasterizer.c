@@ -19,7 +19,7 @@
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
 #define FIRE_FLOOR_ADR 76480
-#define TRIANGLE_CENTER_DIVIDER 0.333333333333333f
+#define TRIANGLE_CENTER_DIVIDER 3 * SCALE_FACTOR
 
 #define SHADING_ENABLED 1
 
@@ -34,34 +34,26 @@ PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
     return light;
 }
 
-float vector3_length(float *vector)
+int32_t vector3_length(int32_t *vector)
 {
-    // int32_t v0=floatToFixed(vector[0]);
-    // v0=fixedPow(v0);
-    // int32_t v1=floatToFixed(vector[1]);
-    // v0=fixedPow(v1);
-    // int32_t v2=floatToFixed(vector[2]);
-    // v0=fixedPow(v2);
-    // float value = fixedToFloat(v0+v1+v2);
-    // return sqrtf(value);
-    return fastSqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+    return fastSqrt(fixedPow(vector[0]) + fixedPow(vector[1]) + fixedPow(vector[2]));
 }
 
-void normalize_vector(float *vector3)
+void normalize_vector(int32_t *vector3)
 {
-    float vectorLength = vector3_length(vector3);
+    int32_t vectorLength = vector3_length(vector3);
     for (uint8_t i = 0; i < 3; i++)
-        vector3[i] /= vectorLength;
+        vector3[i] = fixedDiv(vector3[i], vectorLength);
 }
 
-void triangle_center(Triangle3D *triangle, float *center)
+void triangle_center(Triangle3D *triangle, int32_t *center)
 {
-    center[0] = (triangle->a.x + triangle->b.x + triangle->c.x) * TRIANGLE_CENTER_DIVIDER;
-    center[1] = (triangle->a.y + triangle->b.y + triangle->c.y) * TRIANGLE_CENTER_DIVIDER;
-    center[2] = (triangle->c.z + triangle->b.z + triangle->c.z) * TRIANGLE_CENTER_DIVIDER;
+    center[0] = fixedDiv((triangle->a.x + triangle->b.x + triangle->c.x), TRIANGLE_CENTER_DIVIDER);
+    center[1] = fixedDiv((triangle->a.y + triangle->b.y + triangle->c.y), TRIANGLE_CENTER_DIVIDER);
+    center[2] = fixedDiv((triangle->c.z + triangle->b.z + triangle->c.z), TRIANGLE_CENTER_DIVIDER);
 }
 
-void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
+void transform(int32_t *x, int32_t *y, int32_t *z, TransformInfo *transformInfo)
 {
     if (transformInfo->transformType == 0)
         rotate(x, y, z, transformInfo->transformVector);
@@ -71,52 +63,52 @@ void transform(float *x, float *y, float *z, TransformInfo *transformInfo)
         scale(x, y, z, transformInfo->transformVector);
 }
 
-void rotate(float *x, float *y, float *z, TransformVector *vector)
+void rotate(int32_t *x, int32_t *y, int32_t *z, TransformVector *vector)
 {
-    if (vector->x != 0.0f)
+    if (vector->x != 0)
     {
-        float qt_rad = vector->x * PI2;
-        float c = fastCos(qt_rad);
-        float s = fastSin(qt_rad);
-        float temp_x = (c * *y - s * *z);
-        float temp_y = (s * *y + c * *z);
+        int32_t qt_rad = fixedMul(vector->x, PI2_FIXED);
+        int32_t c = fastCos(qt_rad);
+        int32_t s = fastSin(qt_rad);
+        int32_t temp_x = fixedMul(c, *y) - fixedMul(s, *z);
+        int32_t temp_y = fixedMul(s, *y) + fixedMul(c, *z);
         *y = temp_x;
         *z = temp_y;
     }
-    if (vector->y != 0.0f)
+    if (vector->y != 0)
     {
-        float qt_rad = vector->y * PI2;
-        float c = fastCos(qt_rad);
-        float s = fastSin(qt_rad);
-        float temp_x = (c * *x - s * *z);
-        float temp_y = (s * *x + c * *z);
+        int32_t qt_rad = fixedMul(vector->y, PI2_FIXED);
+        int32_t c = fastCos(qt_rad);
+        int32_t s = fastSin(qt_rad);
+        int32_t temp_x = fixedMul(c, *x) - fixedMul(s, *z);
+        int32_t temp_y = fixedMul(s, *x) + fixedMul(c, *z);
         *x = temp_x;
         *z = temp_y;
     }
-    if (vector->z != 0.0f)
+    if (vector->z != 0)
     {
-        float qt_rad = vector->z * PI2;
-        float c = fastCos(qt_rad);
-        float s = fastSin(qt_rad);
-        float temp_x = (c * *x - s * *y);
-        float temp_y = (s * *x + c * *y);
+        int32_t qt_rad = fixedMul(vector->z, PI2_FIXED);
+        int32_t c = fastCos(qt_rad);
+        int32_t s = fastSin(qt_rad);
+        int32_t temp_x = fixedMul(c, *x) - fixedMul(s, *y);
+        int32_t temp_y = fixedMul(s, *x) + fixedMul(c, *y);
         *x = temp_x;
         *y = temp_y;
     }
 }
 
-void translate(float *x, float *y, float *z, TransformVector *vector)
+void translate(int32_t *x, int32_t *y, int32_t *z, TransformVector *vector)
 {
     *x += vector->x;
     *y += vector->y;
     *z += vector->z;
 }
 
-void scale(float *x, float *y, float *z, TransformVector *vector)
+void scale(int32_t *x, int32_t *y, int32_t *z, TransformVector *vector)
 {
-    *x *= vector->x;
-    *y *= vector->y;
-    *z *= vector->z;
+    *x = fixedMul(*x, vector->x);
+    *y = fixedMul(*y, vector->y);
+    *z = fixedMul(*z, vector->z);
 }
 
 void inf(float *x, float *y, float qt)
@@ -132,16 +124,14 @@ int checkIfTriangleVisible(Triangle2D *triangle)
     int e1y = triangle->b.y - triangle->a.y;
     int e2x = triangle->c.x - triangle->a.x;
     int e2y = triangle->c.y - triangle->a.y;
-    
+
     return (e1x * e2y - e1y * e2x) >= 0;
 }
 
-void shading(uint16_t *color, float lightDistance, PointLight *light)
+void shading(uint16_t *color, int32_t lightDistance, PointLight *light)
 {
-    if (lightDistance != 0.5f)
+    if (lightDistance != 32)
     {
-        if (lightDistance > 1.9f)
-            lightDistance = 1.9f;
         uint8_t rMesh = (*color >> 11) & 0x1f;
         uint8_t gMesh = (*color >> 5) & 0x3f;
         uint8_t bMesh = *color & 0x1f;
@@ -154,21 +144,25 @@ void shading(uint16_t *color, float lightDistance, PointLight *light)
         uint8_t g = (gMesh * gLight) / 63;
         uint8_t b = (bMesh * bLight) / 31;
 
-        r = (uint8_t)(r * lightDistance * light->intensity);
-        g = (uint8_t)(g * lightDistance * light->intensity);
-        b = (uint8_t)(b * lightDistance * light->intensity);
+        r = (uint8_t)(fixedMul(r * lightDistance, light->intensity) / SCALE_FACTOR);
+        g = (uint8_t)(fixedMul(g * lightDistance, light->intensity) / SCALE_FACTOR);
+        b = (uint8_t)(fixedMul(b * lightDistance, light->intensity) / SCALE_FACTOR);
 
         *color = (r << 11) | (g << 5) | b;
     }
 }
 
-uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, int y)
+uint16_t texturing(Triangle2D *triangle, Material *mat, int32_t divider, int x, int y)
 {
-    float Ba = ((triangle->b.y - triangle->c.y) * (x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (y - triangle->c.y)) * divider;
-    float Bb = ((triangle->c.y - triangle->a.y) * (x - triangle->c.x) + (triangle->a.x - triangle->c.x) * (y - triangle->c.y)) * divider;
-    float Bc = 1 - Ba - Bb;
+    int32_t Ba = ((triangle->b.y - triangle->c.y) * (x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (y - triangle->c.y)) * SCALE_FACTOR;
+    int32_t Bb = ((triangle->c.y - triangle->a.y) * (x - triangle->c.x) + (triangle->a.x - triangle->c.x) * (y - triangle->c.y)) * SCALE_FACTOR;
+    Ba = fixedDiv(Ba, divider);
+    Bb = fixedDiv(Bb, divider);
+    int32_t Bc = SCALE_FACTOR - Ba - Bb;
     int uv_x = (Ba * triangle->uvA.x + Bb * triangle->uvB.x + Bc * triangle->uvC.x) * mat->textureSize;
     int uv_y = (Ba * triangle->uvA.y + Bb * triangle->uvB.y + Bc * triangle->uvC.y) * mat->textureSize;
+    uv_x = uv_x / SCALE_FACTOR;
+    uv_y = uv_y / SCALE_FACTOR;
     if (uv_x < 0)
         uv_x = 0;
     if (uv_x > mat->textureSize)
@@ -180,7 +174,7 @@ uint16_t texturing(Triangle2D *triangle, Material *mat, float divider, int x, in
     return mat->texture[uv_y * mat->textureSize + uv_x];
 }
 
-void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float lightDistance, float divider, PointLight *light)
+void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32_t lightDistance, int32_t divider, PointLight *light)
 {
     if (y < 0 || y >= HEIGHT_DISPLAY)
         return;
@@ -215,7 +209,7 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, float
     }
 }
 
-void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *light)
+void tri(Triangle2D *triangle, Material *mat, int32_t lightDistance, PointLight *light)
 {
     int x, y, uv;
     if (triangle->a.y > triangle->b.y)
@@ -286,10 +280,13 @@ void tri(Triangle2D *triangle, Material *mat, float lightDistance, PointLight *l
     if (triangle->c.x < triangle->a.x)
         xxd = -1;
 
-    float divider = 0.0f;
+    int32_t divider = 0;
 
     if (mat->textureSize > 0)
-        divider = 1.0f/((triangle->b.y - triangle->c.y) * (triangle->a.x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (triangle->a.y - triangle->c.y));
+    {
+        divider = (triangle->b.y - triangle->c.y) * (triangle->a.x - triangle->c.x) + (triangle->c.x - triangle->b.x) * (triangle->a.y - triangle->c.y);
+        divider *= SCALE_FACTOR;
+    }
 
     if (triangle->a.y < triangle->b.y)
     {
@@ -353,29 +350,23 @@ void draw_model(Mesh *mesh, PointLight *pLight)
     for (uint16_t i = 0; i < verticesCounter * 3; i += 3)
     {
         // calculates vertex coords in 3D space
-        float x = mesh->vertices[i];
-        float y = mesh->vertices[i + 1];
-        float z = mesh->vertices[i + 2];
-        for(int j=0;j<mesh->transformationsNum;j++)
+        int32_t x = mesh->vertices[i];
+        int32_t y = mesh->vertices[i + 1];
+        int32_t z = mesh->vertices[i + 2];
+        for (int j = 0; j < mesh->transformationsNum; j++)
         {
-            transform(&x,&y,&z,&mesh->transformations[j]);
+            transform(&x, &y, &z, &mesh->transformations[j]);
         }
-        // inf(&x, &y, qt);
+        // calculates vertex coords on the screen
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        // calculates vertex coords on the screen
-        int32_t xF=floatToFixed(x);
-        int32_t yF=floatToFixed(y);
-        int32_t zF=floatToFixed(z);
         int32_t focalLenF = floatToFixed(FOCAL_LENGTH);
-        zF+=(5*SCALE_FACTOR);
-        xF=(xF*focalLenF/zF)+(SCALE_FACTOR*WIDTH_HALF);
-        yF=(yF*focalLenF/zF)+(SCALE_FACTOR*HEIGHT_HALF);
-        x = fixedToFloat(xF);
-        y = fixedToFloat(yF);
-        verticesOnScreen[vsc] = (int)x+0.5f;
-        verticesOnScreen[vsc + 1] = (int)y+0.5f;
+        z += (5 * SCALE_FACTOR);
+        x = (x * focalLenF / z) + (SCALE_FACTOR * WIDTH_HALF);
+        y = (y * focalLenF / z) + (SCALE_FACTOR * HEIGHT_HALF);
+        verticesOnScreen[vsc] = x / SCALE_FACTOR;
+        verticesOnScreen[vsc + 1] = y / SCALE_FACTOR;
         vsc += 2;
     }
     // flat shading
@@ -405,22 +396,22 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         if (!checkIfTriangleVisible(&triangle))
             continue;
         // normal vector
-        float lightDistance = 0.0f;
+        int32_t lightDistance = 0;
         if (SHADING_ENABLED)
         {
-            float xab = verticesModified[b * 3] - verticesModified[a * 3];
-            float yab = verticesModified[b * 3 + 1] - verticesModified[a * 3 + 1];
-            float zab = verticesModified[b * 3 + 2] - verticesModified[a * 3 + 2];
-            float xac = verticesModified[c * 3] - verticesModified[a * 3];
-            float yac = verticesModified[c * 3 + 1] - verticesModified[a * 3 + 1];
-            float zac = verticesModified[c * 3 + 2] - verticesModified[a * 3 + 2];
-            float normalVector[3] =
+            int32_t xab = verticesModified[b * 3] - verticesModified[a * 3];
+            int32_t yab = verticesModified[b * 3 + 1] - verticesModified[a * 3 + 1];
+            int32_t zab = verticesModified[b * 3 + 2] - verticesModified[a * 3 + 2];
+            int32_t xac = verticesModified[c * 3] - verticesModified[a * 3];
+            int32_t yac = verticesModified[c * 3 + 1] - verticesModified[a * 3 + 1];
+            int32_t zac = verticesModified[c * 3 + 2] - verticesModified[a * 3 + 2];
+            int32_t normalVector[3] =
                 {
-                    (yab * zac - zab * yac),
-                    (zab * xac - xab * zac),
-                    (xab * yac - yab * xac)};
+                    (fixedMul(yab, zac) - fixedMul(zab, yac)),
+                    (fixedMul(zab, xac) - fixedMul(xab, zac)),
+                    (fixedMul(xab, yac) - fixedMul(yab, xac))};
             normalize_vector(normalVector);
-            float normalVectorLength = vector3_length(normalVector);
+            int32_t normalVectorLength = vector3_length(normalVector);
             // light direction
             Triangle3D triangle3D = {
                 {verticesModified[a * 3],
@@ -432,28 +423,28 @@ void draw_model(Mesh *mesh, PointLight *pLight)
                 {verticesModified[c * 3],
                  verticesModified[c * 3 + 1],
                  verticesModified[c * 3 + 2]}};
-            float center[3];
+            int32_t center[3];
             triangle_center(&triangle3D, center);
-            float lightDirection[3] =
+            int32_t lightDirection[3] =
                 {
-                    pLight->position.x - center[0],
-                    pLight->position.y - center[1],
-                    pLight->position.z - center[2]};
-            float lightLength = vector3_length(lightDirection);
+                    (pLight->position.x * SCALE_FACTOR) - center[0],
+                    (pLight->position.y * SCALE_FACTOR) - center[1],
+                    (pLight->position.z * SCALE_FACTOR) - center[2]};
+            int32_t lightLength = vector3_length(lightDirection);
             // light distance
-            float vector[3] =
+            int32_t vector[3] =
                 {
                     lightDirection[0] - normalVector[0],
                     lightDirection[1] - normalVector[1],
                     lightDirection[2] - normalVector[2]};
-            float lightDirectionMinusNormalVector = vector3_length(vector);
-            float x = normalVectorLength * normalVectorLength + lightLength * lightLength - lightDirectionMinusNormalVector * lightDirectionMinusNormalVector;
-            float y = (lightLength * normalVectorLength) * 2;
-            lightDistance = x / y;
-            if (lightDistance < 0.0f)
-                lightDistance = 0.0f;
-            if (lightDistance > 1.0f)
-                lightDistance = 1.0f;
+            int64_t lightDirectionMinusNormalVector = vector3_length(vector);
+            int32_t x = fixedPow(normalVectorLength) + fixedPow(lightLength) - fixedPow(lightDirectionMinusNormalVector);
+            int32_t y = fixedMul(lightLength, normalVectorLength) * 2;
+            lightDistance = fixedDiv(x, y);
+            if (lightDistance < 0)
+                lightDistance = 0;
+            if (lightDistance > SHIFT_FACTOR)
+                lightDistance = SHIFT_FACTOR;
         }
 
         tri(&triangle, mesh->mat, lightDistance, pLight);

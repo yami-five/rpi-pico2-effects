@@ -11,9 +11,9 @@ typedef struct
 
 typedef struct
 {
-    float x;
-    float y;
-    float z;
+    int32_t x;
+    int32_t y;
+    int32_t z;
 } TransformVector;
 
 typedef struct
@@ -26,9 +26,9 @@ typedef struct
 {
     uint16_t verticesCounter;
     uint16_t facesCounter;
-    float *vertices;
+    int32_t *vertices;
     uint16_t *faces;
-    float *textureCoords;
+    int32_t *textureCoords;
     uint16_t *uv;
     Material *mat;
     TransformInfo *transformations;

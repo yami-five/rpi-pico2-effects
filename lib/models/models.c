@@ -1,3 +1,4 @@
+#include "fpa.h"
 #include "models.h"
 #include <stdlib.h>
 
@@ -31,9 +32,9 @@ Mesh *createCube(Material *mat)
 
     cube->verticesCounter = 8;
     cube->facesCounter = 12;
-    cube->vertices = (float *)malloc(sizeof(float) * 24);
+    cube->vertices = (int32_t *)malloc(sizeof(int32_t) * 24);
     cube->faces = (uint16_t *)malloc(sizeof(uint16_t) * 36);
-    cube->textureCoords = (float *)malloc(sizeof(float) * 8);
+    cube->textureCoords = (int32_t *)malloc(sizeof(int32_t) * 8);
     cube->uv = (uint16_t *)malloc(sizeof(uint16_t) * 36);
     cube->mat = mat;
     cube->transformations = NULL;
@@ -41,10 +42,10 @@ Mesh *createCube(Material *mat)
 
     for (int i = 0; i < 8; i++)
     {
-        cube->textureCoords[i] = textureCoords[i];
-        cube->vertices[i * 3] = vertices[i * 3];
-        cube->vertices[i * 3 + 1] = vertices[i * 3 + 1];
-        cube->vertices[i * 3 + 2] = vertices[i * 3 + 2];
+        cube->textureCoords[i] = floatToFixed(textureCoords[i]);
+        cube->vertices[i * 3] = floatToFixed(vertices[i * 3]);
+        cube->vertices[i * 3 + 1] = floatToFixed(vertices[i * 3 + 1]);
+        cube->vertices[i * 3 + 2] = floatToFixed(vertices[i * 3 + 2]);
     }
     for (int i = 0; i < 36; i++)
     {
@@ -74,9 +75,9 @@ Mesh *createPlane(Material *mat)
 
     plane->verticesCounter = 4;
     plane->facesCounter = 2;
-    plane->vertices = (float *)malloc(sizeof(float) * 12);
+    plane->vertices = (int32_t *)malloc(sizeof(int32_t) * 12);
     plane->faces = (uint16_t *)malloc(sizeof(uint16_t) * 6);
-    plane->textureCoords = (float *)malloc(sizeof(float) * 8);
+    plane->textureCoords = (int32_t *)malloc(sizeof(int32_t) * 8);
     plane->uv = (uint16_t *)malloc(sizeof(uint16_t) * 6);
     plane->mat = mat;
     plane->transformations = NULL;
@@ -84,14 +85,14 @@ Mesh *createPlane(Material *mat)
 
     for (int i = 0; i < 8; i++)
     {
-        plane->textureCoords[i] = textureCoords[i];
+        plane->textureCoords[i] = floatToFixed(textureCoords[i]);
     }
     for (int i = 0; i < 6; i++)
     {
         plane->faces[i] = faces[i];
         plane->uv[i] = uv[i];
-        plane->vertices[i * 2] = vertices[i * 2];
-        plane->vertices[i * 2 + 1] = vertices[i * 2 + 1];
+        plane->vertices[i * 2] = floatToFixed(vertices[i * 2]);
+        plane->vertices[i * 2 + 1] = floatToFixed(vertices[i * 2 + 1]);
     }
     return plane;
 }
