@@ -68,6 +68,13 @@ void DEV_SPI_Write_nByte(uint8_t pData[], uint32_t Len)
     spi_write_blocking(SPI_PORT, pData, Len);
 }
 
+uint8_t DEV_SPI_WriteReadByte(uint8_t value)
+{
+    uint8_t rxDat;
+	spi_write_read_blocking(spi1,&value,&rxDat,1);
+    return rxDat;
+}
+
 
 
 /**
@@ -135,21 +142,34 @@ void te_callback(uint gpio, uint32_t events) {
 
 void DEV_GPIO_Init(void)
 {
-    DEV_GPIO_Mode(LCD_RST_PIN, 1);
-    DEV_GPIO_Mode(LCD_DC_PIN, 1);
-    DEV_GPIO_Mode(LCD_CS_PIN, 1);
-    DEV_GPIO_Mode(LCD_BL_PIN, 1);
+    DEV_GPIO_Mode(LCD_RST_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(LCD_DC_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(TP_CS_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(TP_IRQ_PIN, GPIO_IN);
+    DEV_GPIO_Mode(SD_CS_PIN, GPIO_OUT);
+    gpio_set_pulls(TP_IRQ_PIN,true,false);
+
+    DEV_GPIO_Mode(TP_CS_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
+    DEV_GPIO_Mode(SD_CS_PIN, GPIO_OUT);
+    // DEV_GPIO_Mode(LCD_RST_PIN, GPIO_OUT);
+    // DEV_GPIO_Mode(LCD_DC_PIN, GPIO_OUT);
+    // DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
+    // DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
     
     
-    DEV_GPIO_Mode(LCD_CS_PIN, 1);
-    DEV_GPIO_Mode(LCD_BL_PIN, 1);
+    // DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
+    // DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
 
-    DEV_Digital_Write(LCD_CS_PIN, 1);
-    DEV_Digital_Write(LCD_DC_PIN, 0);
-    DEV_Digital_Write(LCD_BL_PIN, 1);
+    // DEV_Digital_Write(LCD_CS_PIN, GPIO_OUT);
+    // DEV_Digital_Write(LCD_DC_PIN, GPIO_IN);
+    // DEV_Digital_Write(LCD_BL_PIN, GPIO_OUT);
 
-    DEV_KEY_Config(TE_PIN);
-    gpio_set_irq_enabled_with_callback(TE_PIN, GPIO_IRQ_EDGE_RISE, true, &te_callback);
+    // DEV_KEY_Config(TE_PIN);
+    // gpio_set_irq_enabled_with_callback(TE_PIN, GPIO_IRQ_EDGE_RISE, true, &te_callback);
 }
 /******************************************************************************
 function:	Module Initialize, the library and initialize the pins, SPI protocol

@@ -23,12 +23,12 @@
 
 #define SHADING_ENABLED 1
 
-PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
+PointLight *createLight(float x, float y, float z, uint8_t intensity, uint16_t color)
 {
     PointLight *light = (PointLight *)malloc(sizeof(PointLight));
-    light->position.x = x;
-    light->position.y = y;
-    light->position.z = z;
+    light->position.x = floatToFixed(x);
+    light->position.y = floatToFixed(y);
+    light->position.z = floatToFixed(z);
     light->intensity = intensity;
     light->color = color;
     return light;
@@ -130,7 +130,7 @@ int checkIfTriangleVisible(Triangle2D *triangle)
 
 void shading(uint16_t *color, int32_t lightDistance, PointLight *light)
 {
-    if (lightDistance != 32)
+    if (lightDistance != SCALE_FACTOR / 2)
     {
         uint8_t rMesh = (*color >> 11) & 0x1f;
         uint8_t gMesh = (*color >> 5) & 0x3f;
@@ -144,9 +144,17 @@ void shading(uint16_t *color, int32_t lightDistance, PointLight *light)
         uint8_t g = (gMesh * gLight) / 63;
         uint8_t b = (bMesh * bLight) / 31;
 
-        r = (uint8_t)(fixedMul(r * lightDistance, light->intensity) / SCALE_FACTOR);
-        g = (uint8_t)(fixedMul(g * lightDistance, light->intensity) / SCALE_FACTOR);
-        b = (uint8_t)(fixedMul(b * lightDistance, light->intensity) / SCALE_FACTOR);
+        uint32_t fixedR = r * SCALE_FACTOR;
+        uint32_t fixedG = g * SCALE_FACTOR;
+        uint32_t fixedB = b * SCALE_FACTOR;
+
+        fixedR = fixedMul(fixedR, lightDistance);
+        fixedG = fixedMul(fixedG, lightDistance);
+        fixedB = fixedMul(fixedB, lightDistance);
+
+        r = (uint8_t)(fixedMul(fixedR, light->intensity) / SCALE_FACTOR);
+        g = (uint8_t)(fixedMul(fixedG, light->intensity) / SCALE_FACTOR);
+        b = (uint8_t)(fixedMul(fixedB, light->intensity) / SCALE_FACTOR);
 
         *color = (r << 11) | (g << 5) | b;
     }
@@ -159,8 +167,8 @@ uint16_t texturing(Triangle2D *triangle, Material *mat, int32_t divider, int x, 
     Ba = fixedDiv(Ba, divider);
     Bb = fixedDiv(Bb, divider);
     int32_t Bc = SCALE_FACTOR - Ba - Bb;
-    int uv_x = (Ba * triangle->uvA.x + Bb * triangle->uvB.x + Bc * triangle->uvC.x) * mat->textureSize;
-    int uv_y = (Ba * triangle->uvA.y + Bb * triangle->uvB.y + Bc * triangle->uvC.y) * mat->textureSize;
+    int uv_x = (fixedMul(Ba, triangle->uvA.x) + fixedMul(Bb, triangle->uvB.x) + fixedMul(Bc, triangle->uvC.x)) * mat->textureSize;
+    int uv_y = (fixedMul(Ba, triangle->uvA.y) + fixedMul(Bb, triangle->uvB.y) + fixedMul(Bc, triangle->uvC.y)) * mat->textureSize;
     uv_x = uv_x / SCALE_FACTOR;
     uv_y = uv_y / SCALE_FACTOR;
     if (uv_x < 0)
@@ -427,24 +435,26 @@ void draw_model(Mesh *mesh, PointLight *pLight)
             triangle_center(&triangle3D, center);
             int32_t lightDirection[3] =
                 {
-                    (pLight->position.x * SCALE_FACTOR) - center[0],
-                    (pLight->position.y * SCALE_FACTOR) - center[1],
-                    (pLight->position.z * SCALE_FACTOR) - center[2]};
+                    pLight->position.x - center[0],
+                    pLight->position.y - center[1],
+                    pLight->position.z - center[2]
+                };
             int32_t lightLength = vector3_length(lightDirection);
             // light distance
             int32_t vector[3] =
                 {
                     lightDirection[0] - normalVector[0],
                     lightDirection[1] - normalVector[1],
-                    lightDirection[2] - normalVector[2]};
+                    lightDirection[2] - normalVector[2]
+                };
             int64_t lightDirectionMinusNormalVector = vector3_length(vector);
             int32_t x = fixedPow(normalVectorLength) + fixedPow(lightLength) - fixedPow(lightDirectionMinusNormalVector);
             int32_t y = fixedMul(lightLength, normalVectorLength) * 2;
             lightDistance = fixedDiv(x, y);
             if (lightDistance < 0)
                 lightDistance = 0;
-            if (lightDistance > SHIFT_FACTOR)
-                lightDistance = SHIFT_FACTOR;
+            if (lightDistance > SCALE_FACTOR)
+                lightDistance = SCALE_FACTOR;
         }
 
         tri(&triangle, mesh->mat, lightDistance, pLight);

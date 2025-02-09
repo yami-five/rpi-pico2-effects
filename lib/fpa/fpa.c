@@ -89,17 +89,36 @@ int32_t fastInvSqrt(int32_t value)
 
 int32_t fastSqrt(int64_t value)
 {
-    int64_t x = value;
-    int64_t result = value;
-    int64_t oldResult=0;
-    uint8_t i=0;
-    while(result!=oldResult)
+    uint32_t res = 0;
+    uint32_t bit = 1 << 30;
+
+    while (bit > value)
+        bit >>= 2;
+
+    while (bit != 0)
     {
-        oldResult=result;
-        result = (result + fixedDiv(x, result)) >> 1;
-        i++;
-        if(i==9) 
-            break;
+        if (value >= bit + res)
+        {
+            value -= res + bit;
+            res = (res >> 1) + bit;
+        }
+        else
+            res>>=1;
+        bit>>=2;
     }
-    return result;
+
+    return (int32_t)res;
+    // int64_t x = value;
+    // int64_t result = value;
+    // int64_t oldResult=0;
+    // uint8_t i=0;
+    // while(result!=oldResult)
+    // {
+    //     oldResult=result;
+    //     result = (result + fixedDiv(x, result)) >> 1;
+    //     i++;
+    //     if(i==9)
+    //         break;
+    // }
+    // return result;
 }

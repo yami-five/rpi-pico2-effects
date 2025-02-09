@@ -1,8 +1,22 @@
+#include "ff.h"
 #include "fpa.h"
 #include "models.h"
 #include <stdlib.h>
 
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+// Mesh* createColoredMesh(uint16_t color)
+// {
+
+// }
+// Mesh* createTexturedMesh(uint16_t *texture, int textureSize)
+// {
+
+// }
+// Mesh* loadObjFile(Material *mat, char *filename)
+// {
+//     //FRESULT fr =
+// }
 
 Mesh *createColoredCube(uint16_t color)
 {

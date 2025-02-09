@@ -46,18 +46,29 @@
  * GPIOI config
 **/
 
-#define LCD_RST_PIN  12
-#define LCD_DC_PIN   8
-#define LCD_BL_PIN   13
+// #define LCD_RST_PIN  12
+// #define LCD_DC_PIN   8
+// #define LCD_BL_PIN   13
     
-#define LCD_CS_PIN   9
-#define LCD_CLK_PIN  10
-#define LCD_MOSI_PIN 11
+// #define LCD_CS_PIN   9
+// #define LCD_CLK_PIN  10
+// #define LCD_MOSI_PIN 11
     
 #define LCD_SCL_PIN  7
 #define LCD_SDA_PIN  6
 
-#define TE_PIN 14
+// #define TE_PIN 14
+
+#define LCD_RST_PIN		15	
+#define LCD_DC_PIN		8
+#define LCD_CS_PIN		9
+#define LCD_CLK_PIN		10
+#define LCD_BL_PIN		13
+#define LCD_MOSI_PIN	11
+#define LCD_MISO_PIN	12
+#define TP_CS_PIN		16
+#define TP_IRQ_PIN		17
+#define SD_CS_PIN		22
 /*------------------------------------------------------------------------------------------------------*/
 void DEV_Digital_Write(UWORD Pin, UBYTE Value);
 UBYTE DEV_Digital_Read(UWORD Pin);
@@ -69,6 +80,8 @@ UBYTE DEV_Digital_Read(UWORD Pin);
 
 void DEV_SPI_WriteByte(UBYTE Value);
 void DEV_SPI_Write_nByte(uint8_t *pData, uint32_t Len);
+
+uint8_t DEV_SPI_WriteReadByte(uint8_t value);
 
 void DEV_Delay_ms(UDOUBLE xms);
 void DEV_Delay_us(UDOUBLE xus);

@@ -6,6 +6,7 @@
 #include "models.h"
 #include "gfx.h"
 #include "fpa.h"
+#include "sd_reader.h"
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -26,6 +27,7 @@ int main(void)
     }
     /* LCD Init */
     init_lcd(0);
+    sd_init();
     set_windows(0, 0, HEIGHT_DISPLAY, WIDTH_DISPLAY);
     clear_buffer();
     draw_buffer();
@@ -39,10 +41,10 @@ int main(void)
     Mesh *cubeTextured2 = createTexturedCube(box_texture, 32);
     Mesh *cubeTextured3 = createTexturedCube(box_texture, 32);
     Mesh *cubeTextured4 = createTexturedCube(wall_texture, 32);
-    PointLight *lightWhite = createLight(0, 0, 50, floatToFixed(1.0f), 0xffff);
-    PointLight *lightRed = createLight(0, 0, 50, floatToFixed(1.0f), 0xf800);
-    PointLight *lightBlue = createLight(0, 0, 50, floatToFixed(1.0f), 0x07e0);
-    PointLight *lightGreen = createLight(0, 0, 50, floatToFixed(1.0f), 0x001f);
+    PointLight *lightWhite = createLight(0.0f, 0.0f, 50.0f, floatToFixed(1.0f), 0xffff);
+    PointLight *lightRed = createLight(0.0f, 0.0f, 50.0f, floatToFixed(1.0f), 0xf800);
+    PointLight *lightBlue = createLight(0.0f, 0.0f, 50.0f, floatToFixed(1.0f), 0x07e0);
+    PointLight *lightGreen = createLight(0.0f, 0.0f, 50.0f, floatToFixed(1.0f), 0x001f);
     int x = 0;
     int d = 1;
     int colorNum = 0;
@@ -56,7 +58,7 @@ int main(void)
     cubeTextured3->transformations = addTransformation(cubeTextured3->transformations, &cubeTextured3->transformationsNum, floatToFixed(-3.0f), floatToFixed(2.0f), 0, 1);
     cubeTextured4->transformations = addTransformation(cubeTextured4->transformations, &cubeTextured4->transformationsNum, floatToFixed(-3.0f), floatToFixed(-2.0f), 0, 1);
     int32_t lightIntensity[6] = {floatToFixed(1.0f), floatToFixed(0.75f), floatToFixed(0.3f), floatToFixed(0.1f), floatToFixed(0.5f), floatToFixed(0.75f)};
-    int32_t t_factor=floatToFixed(0.01f);
+    int32_t t_factor=floatToFixed(0.05f);
     while (1)
     {
         lightWhite->intensity = lightIntensity[t % 6];

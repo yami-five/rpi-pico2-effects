@@ -1,18 +1,18 @@
 #include <stdint.h>
 #include <DEV_Config.h>
 
-#define LCD_RST_PIN  12
-#define LCD_DC_PIN   8
-#define LCD_BL_PIN   13
+// #define LCD_RST_PIN  12
+// #define LCD_DC_PIN   8
+// #define LCD_BL_PIN   13
     
-#define LCD_CS_PIN   9
-#define LCD_CLK_PIN  10
-#define LCD_MOSI_PIN 11
+// #define LCD_CS_PIN   9
+// #define LCD_CLK_PIN  10
+// #define LCD_MOSI_PIN 11
     
-#define LCD_SCL_PIN  7
-#define LCD_SDA_PIN  6
+// #define LCD_SCL_PIN  7
+// #define LCD_SDA_PIN  6
 
-#define TE_PIN 14
+// #define TE_PIN 14
 
 #define DISPLAY_WIDTH 320
 #define DISPLAY_HEIGHT 240
@@ -57,20 +57,6 @@ static void set_attributes(uint8_t Scan_dir)
     // Set the read / write scan direction of the frame memory
     send_command(0x36); //MX, MY, RGB mode
     send_data_8bit(MemoryAccessReg);	//0x08 set RGB
-}
-
-void init_lcd(uint8_t Scan_dir)
-{
-    //set pwm
-    DEV_SET_PWM(100);
-    //Hardware reset
-    lcd_reset();
-
-    //Set the resolution and scanning method of the screen
-    set_attributes(Scan_dir);
-    
-    //Set the initialization register
-    init_reg();
 }
 
 void lcd_reset(void)
@@ -175,6 +161,20 @@ void init_reg()
 	send_command(0x29);
 
 	send_command(0x35);
+}
+
+void init_lcd(uint8_t Scan_dir)
+{
+    //set pwm
+    DEV_SET_PWM(100);
+    //Hardware reset
+    lcd_reset();
+
+    //Set the resolution and scanning method of the screen
+    set_attributes(Scan_dir);
+    
+    //Set the initialization register
+    init_reg();
 }
 
 void set_windows(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend)

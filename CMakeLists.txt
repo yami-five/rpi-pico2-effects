@@ -12,15 +12,15 @@ set(PICO_DEFAULT_FLOAT_IMPL pico)
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 
-# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
 else()
     set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
+set(sdkVersion 2.1.0)
+set(toolchainVersion 13_3_Rel1)
+set(picotoolVersion 2.1.0)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
@@ -45,6 +45,9 @@ add_subdirectory(lib/lcd)
 add_subdirectory(lib/models)
 add_subdirectory(lib/gfx)
 add_subdirectory(lib/fpa)
+add_subdirectory(lib/fatfs)
+add_subdirectory(lib/sd_reader)
+add_subdirectory(lib/sd_driver)
 include_directories(./lib/Config)
 include_directories(./lib/effects)
 include_directories(./lib/rasterizer)
@@ -53,6 +56,9 @@ include_directories(./lib/lcd)
 include_directories(./lib/models)
 include_directories(./lib/gfx)
 include_directories(./lib/fpa)
+include_directories(./lib/fatfs)
+include_directories(./lib/sd_reader)
+include_directories(./lib/sd_driver)
 
 
 add_executable(demo demo.c )
@@ -63,9 +69,6 @@ pico_set_program_version(demo "0.1")
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(demo 1)
 pico_enable_stdio_usb(demo 0)
-
-target_link_libraries(demo
-        pico_stdlib Config effects rasterizer painter lcd models gfx fpa)
 
 # Add the standard include files to the build
 target_include_directories(demo PRIVATE
@@ -78,6 +81,18 @@ target_link_libraries(demo
         hardware_spi
         hardware_i2c
         hardware_pwm
+        pico_stdlib
+        Config
+        effects
+        rasterizer
+        painter
+        lcd
+        models
+        gfx
+        fpa
+        fatfs
+        sd_reader
+        sd_driver
         )
 
 pico_add_extra_outputs(demo)
