@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FOCAL_LENGTH 90.0f
+#define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
 #define HEIGHT_DISPLAY 240
 #define WIDTH_DOUBLED 640
@@ -19,16 +19,17 @@
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
 #define FIRE_FLOOR_ADR 76480
+#define FIXED_FOCAL_LENGTH 92160
 #define TRIANGLE_CENTER_DIVIDER 3 * SCALE_FACTOR
 
 #define SHADING_ENABLED 1
 
-PointLight *createLight(float x, float y, float z, uint8_t intensity, uint16_t color)
+PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 {
     PointLight *light = (PointLight *)malloc(sizeof(PointLight));
-    light->position.x = floatToFixed(x);
-    light->position.y = floatToFixed(y);
-    light->position.z = floatToFixed(z);
+    light->position.x = x;
+    light->position.y = y;
+    light->position.z = z;
     light->intensity = intensity;
     light->color = color;
     return light;
@@ -352,7 +353,7 @@ void tri(Triangle2D *triangle, Material *mat, int32_t lightDistance, PointLight 
 void draw_model(Mesh *mesh, PointLight *pLight)
 {
     uint16_t verticesCounter = mesh->verticesCounter;
-    float verticesModified[verticesCounter * 3];
+    int verticesModified[verticesCounter * 3];
     int verticesOnScreen[verticesCounter * 2];
     uint8_t vsc = 0;
     for (uint16_t i = 0; i < verticesCounter * 3; i += 3)
@@ -369,10 +370,9 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        int32_t focalLenF = floatToFixed(FOCAL_LENGTH);
         z += (5 * SCALE_FACTOR);
-        x = (x * focalLenF / z) + (SCALE_FACTOR * WIDTH_HALF);
-        y = (y * focalLenF / z) + (SCALE_FACTOR * HEIGHT_HALF);
+        x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
+        y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
         verticesOnScreen[vsc] = x / SCALE_FACTOR;
         verticesOnScreen[vsc + 1] = y / SCALE_FACTOR;
         vsc += 2;

@@ -151,10 +151,10 @@ void DEV_GPIO_Init(void)
     DEV_GPIO_Mode(SD_CS_PIN, GPIO_OUT);
     gpio_set_pulls(TP_IRQ_PIN,true,false);
 
-    DEV_GPIO_Mode(TP_CS_PIN, GPIO_OUT);
-    DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
-    DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
-    DEV_GPIO_Mode(SD_CS_PIN, GPIO_OUT);
+    DEV_Digital_Write(TP_CS_PIN, GPIO_OUT);
+    DEV_Digital_Write(LCD_CS_PIN, GPIO_OUT);
+    DEV_Digital_Write(LCD_BL_PIN, GPIO_OUT);
+    DEV_Digital_Write(SD_CS_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_RST_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_DC_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
@@ -179,14 +179,12 @@ Info:
 UBYTE DEV_Module_Init(void)
 {
     stdio_init_all();   
+    
     // SPI Config
-    spi_init(SPI_PORT, 625000 * 1000);
+    spi_init(SPI_PORT, 62500 * 1000);
     gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
-    
-    // GPIO Config
-    DEV_GPIO_Init();
-    
+    gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
     
     // PWM Config
     gpio_set_function(LCD_BL_PIN, GPIO_FUNC_PWM);
@@ -195,14 +193,16 @@ UBYTE DEV_Module_Init(void)
     pwm_set_chan_level(slice_num, PWM_CHAN_B, 1);
     pwm_set_clkdiv(slice_num,50);
     pwm_set_enabled(slice_num, true);
-    
-    
+
     //I2C Config
     i2c_init(i2c1,300*1000);
     gpio_set_function(LCD_SDA_PIN,GPIO_FUNC_I2C);
     gpio_set_function(LCD_SCL_PIN,GPIO_FUNC_I2C);
     gpio_pull_up(LCD_SDA_PIN);
     gpio_pull_up(LCD_SCL_PIN);
+
+    // GPIO Config
+    DEV_GPIO_Init();
     
     printf("DEV_Module_Init OK \r\n");
     return 0;

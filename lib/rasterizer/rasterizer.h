@@ -37,7 +37,7 @@ typedef struct
     uint16_t color;
 } PointLight;
 
-PointLight *createLight(float x, float y, float z, uint8_t intensity, uint16_t color);
+PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
 int32_t vector3_length(int32_t *vector3);
 void normalize_vector(int32_t *vector3);
 void triangle_center(Triangle3D *triangle, int32_t *center);
