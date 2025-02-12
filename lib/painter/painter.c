@@ -77,14 +77,6 @@ void clear_buffer()
     }
 }
 
-void draw_buffer()
-{
-    DEV_Digital_Write(LCD_DC_PIN, 1);
-    DEV_Digital_Write(LCD_CS_PIN, 0);
-    DEV_SPI_Write_nByte(buffer, ARRAY_SIZE);
-    DEV_Digital_Write(LCD_CS_PIN, 1);
-}
-
 void lcd_refresh()
 {
     DEV_Digital_Write(LCD_CS_PIN, 0);
@@ -94,7 +86,7 @@ void lcd_refresh()
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }
 
-void draw_buffer_dma()
+void draw_buffer()
 {
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);

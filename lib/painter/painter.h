@@ -10,4 +10,3 @@ void draw_image(uint8_t* image, uint16_t x, uint16_t y, uint16_t pos_x, uint16_t
 void clear_buffer();
 void draw_buffer();
 void lcd_refresh();
-void draw_buffer_dma();
