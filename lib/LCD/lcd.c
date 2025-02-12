@@ -117,7 +117,7 @@ void init_reg()
 	send_data_8bit(0x20);
 
 	send_command(0xC6);
-	send_data_8bit(0x1F); 
+	send_data_8bit(0x0F); 
 
 	send_command(0xD0);
 	send_data_8bit(0xA4);

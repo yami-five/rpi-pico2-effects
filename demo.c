@@ -7,6 +7,7 @@
 #include "gfx.h"
 #include "fpa.h"
 #include "sd_reader.h"
+#include "pico/stdlib.h"
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -28,6 +29,7 @@ int main(void)
     /* LCD Init */
     init_lcd(0);
     sd_init();
+    init_dma();
     set_windows(0, 0, HEIGHT_DISPLAY, WIDTH_DISPLAY);
     clear_buffer();
     draw_buffer(0);
@@ -63,10 +65,10 @@ int main(void)
     int fixed_02=floatToFixed(0.2f);
     while (1)
     {
-        absolute_time_t start = get_absolute_time();
         lightWhite->intensity = lightRed->intensity = lightGreen->intensity = lightBlue->intensity = lightIntensity[t % 8];
         int32_t qt = t * t_factor;
         clear_buffer();
+        // absolute_time_t start = get_absolute_time();
         cubeTextured1->transformations[0].transformVector->x =
             cubeTextured1->transformations[0].transformVector->y =
                 cubeTextured1->transformations[0].transformVector->z = qt + fixed_005;
@@ -86,17 +88,10 @@ int main(void)
             cubeTextured4->transformations[0].transformVector->y =
                 cubeTextured4->transformations[0].transformVector->z = qt + SCALE_FACTOR;
         draw_model(cubeTextured4, lightGreen);
-        // wallTextured1->transformations[0].transformVector->x=qt;
-
-        draw_buffer(1);
+        draw_buffer();
+        // absolute_time_t end = get_absolute_time();
+        // int64_t elapsed_us = absolute_time_diff_us(start,end);
         t++;
-        absolute_time_t end = get_absolute_time();
-        int64_t elapsed_us = absolute_time_diff_us(start,end);
-        int test = 0;
-        // changeILine();
-        // clear_interlaced(getDrawOddLines());
     }
-    freeModel(cubeTextured1);
-    freeModel(cubeColored);
     return 0;
 }

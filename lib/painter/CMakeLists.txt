@@ -13,4 +13,5 @@ target_link_libraries(painter PUBLIC
     pico_rand
     pico_multicore
     Config
+    hardware_dma
 )

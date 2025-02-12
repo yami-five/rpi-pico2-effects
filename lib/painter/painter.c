@@ -3,6 +3,7 @@
 #include "DEV_Config.h"
 #include "gfx.h"
 #include <stdlib.h>
+#include "hardware/dma.h"
 
 #define WIDTH_DISPLAY 320
 #define HEIGHT_DISPLAY 240
@@ -11,8 +12,26 @@
 #define ARRAY_SIZE 153600
 #define WIDTH_HALF 160
 #define HEIGHT_HALF 120
+#define BUFFER_SIZE 153600
 
-uint8_t buffer[153600];
+uint8_t buffer[BUFFER_SIZE];
+int dma_channel;
+
+void init_dma()
+{
+    dma_channel = dma_claim_unused_channel(true);
+    dma_channel_config config = dma_channel_get_default_config(dma_channel);
+    channel_config_set_transfer_data_size(&config, DMA_SIZE_8);
+    channel_config_set_dreq(&config, spi_get_dreq(spi1,true));
+    dma_channel_configure(
+        dma_channel,
+        &config,
+        &spi_get_hw(spi1)->dr,
+        buffer,
+        BUFFER_SIZE,
+        false
+    );
+}
 
 void draw_line(int x0, int y0, int x1, int y1, uint16_t color)
 {
@@ -58,21 +77,29 @@ void clear_buffer()
     }
 }
 
-// void clear_interlaced(uint8_t startLine)
-// {
-//     for (int x = 0; x < HEIGHT_DISPLAY; x+=2)
-//     {
-//         for (int y = startLine; y < WIDTH_DISPLAY; y ++)
-//         {
-//             buffer[x * WIDTH_DISPLAY + y] = 0;
-//         }
-//     }
-// }
-
 void draw_buffer()
 {
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
     DEV_SPI_Write_nByte(buffer, ARRAY_SIZE);
+    DEV_Digital_Write(LCD_CS_PIN, 1);
+}
+
+void lcd_refresh()
+{
+    DEV_Digital_Write(LCD_CS_PIN, 0);
+    DEV_Digital_Write(LCD_DC_PIN, 0);
+    DEV_SPI_WriteByte(0x2C);
+    DEV_Digital_Write(LCD_DC_PIN, 1);
+    DEV_Digital_Write(LCD_CS_PIN, 1);
+}
+
+void draw_buffer_dma()
+{
+    DEV_Digital_Write(LCD_DC_PIN, 1);
+    DEV_Digital_Write(LCD_CS_PIN, 0);
+    dma_channel_transfer_from_buffer_now(dma_channel,buffer,BUFFER_SIZE);
+    dma_channel_wait_for_finish_blocking(dma_channel);
+    lcd_refresh();
     DEV_Digital_Write(LCD_CS_PIN, 1);
 }

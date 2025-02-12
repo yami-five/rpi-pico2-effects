@@ -24,18 +24,6 @@
 
 #define SHADING_ENABLED 1
 
-// uint8_t drawOddLines=1;
-
-// void changeILine()
-// {
-//     drawOddLines=drawOddLines ^ 1;
-// }
-
-// uint8_t getDrawOddLines()
-// {
-//     return drawOddLines;
-// }
-
 PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 {
     PointLight *light = (PointLight *)malloc(sizeof(PointLight));
@@ -230,16 +218,6 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
             color = texturing(triangle, mat, divider, x, y);
         if (SHADING_ENABLED)
             shading(&color, lightDistance, light);
-        // if(drawOddLines)
-        // {
-        //     draw_pixel(x*2, y*2, color);
-        //     draw_pixel(x*2+1, y*2, color);
-        // }
-        // else
-        // {
-        //     draw_pixel(x*2, y*2+1, color);
-        //     draw_pixel(x*2+1, y*2+1, color);
-        // }
         draw_pixel(x*2, y*2, color);
         draw_pixel(x*2+1, y*2, color);
         draw_pixel(x*2, y*2+1, color);

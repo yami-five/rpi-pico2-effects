@@ -1,12 +1,12 @@
 /*****************************************************************************
 * | File      	:   DEV_Config.c
-* | Author      :   
+* | Author      :
 * | Function    :   Hardware underlying interface
 * | Info        :
 *----------------
 * |	This version:   V1.0
 * | Date        :   2021-03-16
-* | Info        :   
+* | Info        :
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documnetation files (the "Software"), to deal
@@ -40,11 +40,11 @@ bool get_te_signal_detected()
 }
 void set_te_signal_detected(bool value)
 {
-    te_signal_detected=value;
+    te_signal_detected = value;
 }
 /**
  * GPIO read and write
-**/
+ **/
 void DEV_Digital_Write(UWORD Pin, UBYTE Value)
 {
     gpio_put(Pin, Value);
@@ -57,7 +57,7 @@ UBYTE DEV_Digital_Read(UWORD Pin)
 
 /**
  * SPI
-**/
+ **/
 void DEV_SPI_WriteByte(uint8_t Value)
 {
     spi_write_blocking(SPI_PORT, &Value, 1);
@@ -71,15 +71,13 @@ void DEV_SPI_Write_nByte(uint8_t pData[], uint32_t Len)
 uint8_t DEV_SPI_WriteReadByte(uint8_t value)
 {
     uint8_t rxDat;
-	spi_write_read_blocking(spi1,&value,&rxDat,1);
+    spi_write_read_blocking(spi1, &value, &rxDat, 1);
     return rxDat;
 }
 
-
-
 /**
  * I2C
-**/
+ **/
 
 void DEV_I2C_Write(uint8_t addr, uint8_t reg, uint8_t Value)
 {
@@ -95,37 +93,40 @@ void DEV_I2C_Write_nByte(uint8_t addr, uint8_t *pData, uint32_t Len)
 uint8_t DEV_I2C_ReadByte(uint8_t addr, uint8_t reg)
 {
     uint8_t buf;
-    i2c_write_blocking(i2c1,addr,&reg,1,true);
-    i2c_read_blocking(i2c1,addr,&buf,1,false);
+    i2c_write_blocking(i2c1, addr, &reg, 1, true);
+    i2c_read_blocking(i2c1, addr, &buf, 1, false);
     return buf;
 }
 
 /**
  * GPIO Mode
-**/
+ **/
 void DEV_GPIO_Mode(UWORD Pin, UWORD Mode)
 {
     gpio_init(Pin);
-    if(Mode == 0 || Mode == GPIO_IN) {
+    if (Mode == 0 || Mode == GPIO_IN)
+    {
         gpio_set_dir(Pin, GPIO_IN);
-    } else {
+    }
+    else
+    {
         gpio_set_dir(Pin, GPIO_OUT);
     }
 }
 
 /**
  * KEY Config
-**/
+ **/
 void DEV_KEY_Config(UWORD Pin)
 {
     gpio_init(Pin);
-	gpio_pull_up(Pin);
+    gpio_pull_up(Pin);
     gpio_set_dir(Pin, GPIO_IN);
 }
 
 /**
  * delay x ms
-**/
+ **/
 void DEV_Delay_ms(UDOUBLE xms)
 {
     sleep_ms(xms);
@@ -136,7 +137,8 @@ void DEV_Delay_us(UDOUBLE xus)
     sleep_us(xus);
 }
 
-void te_callback(uint gpio, uint32_t events) {
+void te_callback(uint gpio, uint32_t events)
+{
     te_signal_detected = true;
 }
 
@@ -149,7 +151,7 @@ void DEV_GPIO_Init(void)
     DEV_GPIO_Mode(TP_CS_PIN, GPIO_OUT);
     DEV_GPIO_Mode(TP_IRQ_PIN, GPIO_IN);
     DEV_GPIO_Mode(SD_CS_PIN, GPIO_OUT);
-    gpio_set_pulls(TP_IRQ_PIN,true,false);
+    gpio_set_pulls(TP_IRQ_PIN, true, false);
 
     DEV_Digital_Write(TP_CS_PIN, GPIO_OUT);
     DEV_Digital_Write(LCD_CS_PIN, GPIO_OUT);
@@ -159,8 +161,7 @@ void DEV_GPIO_Init(void)
     // DEV_GPIO_Mode(LCD_DC_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
-    
-    
+
     // DEV_GPIO_Mode(LCD_CS_PIN, GPIO_OUT);
     // DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);
 
@@ -178,45 +179,46 @@ Info:
 ******************************************************************************/
 UBYTE DEV_Module_Init(void)
 {
-    stdio_init_all();   
-    
+    stdio_init_all();
+
     // SPI Config
     spi_init(SPI_PORT, 62500 * 1000);
     gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MISO_PIN, GPIO_FUNC_SPI);
-    
+
     // PWM Config
     gpio_set_function(LCD_BL_PIN, GPIO_FUNC_PWM);
     slice_num = pwm_gpio_to_slice_num(LCD_BL_PIN);
     pwm_set_wrap(slice_num, 100);
     pwm_set_chan_level(slice_num, PWM_CHAN_B, 1);
-    pwm_set_clkdiv(slice_num,50);
+    pwm_set_clkdiv(slice_num, 50);
     pwm_set_enabled(slice_num, true);
 
-    //I2C Config
-    i2c_init(i2c1,300*1000);
-    gpio_set_function(LCD_SDA_PIN,GPIO_FUNC_I2C);
-    gpio_set_function(LCD_SCL_PIN,GPIO_FUNC_I2C);
+    // I2C Config
+    i2c_init(i2c1, 300 * 1000);
+    gpio_set_function(LCD_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(LCD_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(LCD_SDA_PIN);
     gpio_pull_up(LCD_SCL_PIN);
 
     // GPIO Config
     DEV_GPIO_Init();
-    
+
     printf("DEV_Module_Init OK \r\n");
     return 0;
 }
 
-void DEV_SET_PWM(uint8_t Value){
-    if(Value<0 || Value >100){
+void DEV_SET_PWM(uint8_t Value)
+{
+    if (Value < 0 || Value > 100)
+    {
         printf("DEV_SET_PWM Error \r\n");
-    }else {
+    }
+    else
+    {
         pwm_set_chan_level(slice_num, PWM_CHAN_B, Value);
     }
-        
-    
-    
 }
 
 /******************************************************************************
@@ -226,5 +228,4 @@ Info:
 ******************************************************************************/
 void DEV_Module_Exit(void)
 {
-
 }
