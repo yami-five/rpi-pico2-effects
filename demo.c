@@ -30,7 +30,7 @@ int main(void)
     sd_init();
     set_windows(0, 0, HEIGHT_DISPLAY, WIDTH_DISPLAY);
     clear_buffer();
-    draw_buffer();
+    draw_buffer(0);
 
     // init_fire();
     uint32_t t = 0;
@@ -63,9 +63,10 @@ int main(void)
     int fixed_02=floatToFixed(0.2f);
     while (1)
     {
+        absolute_time_t start = get_absolute_time();
         lightWhite->intensity = lightRed->intensity = lightGreen->intensity = lightBlue->intensity = lightIntensity[t % 8];
         int32_t qt = t * t_factor;
-        clear_buffer();
+        // clear_buffer();
         cubeTextured1->transformations[0].transformVector->x =
             cubeTextured1->transformations[0].transformVector->y =
                 cubeTextured1->transformations[0].transformVector->z = qt + fixed_005;
@@ -87,8 +88,13 @@ int main(void)
         draw_model(cubeTextured4, lightGreen);
         // wallTextured1->transformations[0].transformVector->x=qt;
 
-        draw_buffer();
+        draw_buffer(1);
         t++;
+        absolute_time_t end = get_absolute_time();
+        int64_t elapsed_us = absolute_time_diff_us(start,end);
+        int test = 0;
+        // changeILine();
+        // clear_interlaced(getDrawOddLines());
     }
     freeModel(cubeTextured1);
     freeModel(cubeColored);

@@ -37,6 +37,8 @@ typedef struct
     uint16_t color;
 } PointLight;
 
+// void changeILine();
+// uint8_t getDrawOddLines();
 PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
 int32_t vector3_length(int32_t *vector3);
 void normalize_vector(int32_t *vector3);

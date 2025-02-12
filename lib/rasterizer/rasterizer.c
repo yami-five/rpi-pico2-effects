@@ -11,18 +11,30 @@
 #include <stdlib.h>
 
 #define FOCAL_LENGTH 90
-#define WIDTH_DISPLAY 320
-#define HEIGHT_DISPLAY 240
-#define WIDTH_DOUBLED 640
-#define HEIGHT_DOUBLED 480
+#define WIDTH_DISPLAY 320/2
+#define HEIGHT_DISPLAY 240/2
+#define WIDTH_DOUBLED 640/2
+#define HEIGHT_DOUBLED 480/2
 #define ARRAY_SIZE 153600
-#define WIDTH_HALF 160
-#define HEIGHT_HALF 120
+#define WIDTH_HALF 160/2
+#define HEIGHT_HALF 120/2
 #define FIRE_FLOOR_ADR 76480
-#define FIXED_FOCAL_LENGTH 92160
+#define FIXED_FOCAL_LENGTH 90 * SCALE_FACTOR
 #define TRIANGLE_CENTER_DIVIDER 3 * SCALE_FACTOR
 
 #define SHADING_ENABLED 1
+
+// uint8_t drawOddLines=1;
+
+// void changeILine()
+// {
+//     drawOddLines=drawOddLines ^ 1;
+// }
+
+// uint8_t getDrawOddLines()
+// {
+//     return drawOddLines;
+// }
 
 PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
 {
@@ -187,6 +199,10 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
 {
     if (y < 0 || y >= HEIGHT_DISPLAY)
         return;
+    // if (drawOddLines==0 && y%2==0)
+    //     return;
+    // if (drawOddLines==1 && y%2!=0)
+    //     return;
     int n = (y % 2) / 2;
     x0 += n;
     x1 += n;
@@ -214,7 +230,20 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
             color = texturing(triangle, mat, divider, x, y);
         if (SHADING_ENABLED)
             shading(&color, lightDistance, light);
-        draw_pixel(x, y, color);
+        // if(drawOddLines)
+        // {
+        //     draw_pixel(x*2, y*2, color);
+        //     draw_pixel(x*2+1, y*2, color);
+        // }
+        // else
+        // {
+        //     draw_pixel(x*2, y*2+1, color);
+        //     draw_pixel(x*2+1, y*2+1, color);
+        // }
+        draw_pixel(x*2, y*2, color);
+        draw_pixel(x*2+1, y*2, color);
+        draw_pixel(x*2, y*2+1, color);
+        draw_pixel(x*2+1, y*2+1, color);
     }
 }
 
@@ -370,7 +399,7 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        z += (5 * SCALE_FACTOR);
+        z += (10 * SCALE_FACTOR);
         x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
         y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
         verticesOnScreen[vsc] = x / SCALE_FACTOR;
