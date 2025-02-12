@@ -66,7 +66,7 @@ int main(void)
         absolute_time_t start = get_absolute_time();
         lightWhite->intensity = lightRed->intensity = lightGreen->intensity = lightBlue->intensity = lightIntensity[t % 8];
         int32_t qt = t * t_factor;
-        // clear_buffer();
+        clear_buffer();
         cubeTextured1->transformations[0].transformVector->x =
             cubeTextured1->transformations[0].transformVector->y =
                 cubeTextured1->transformations[0].transformVector->z = qt + fixed_005;
