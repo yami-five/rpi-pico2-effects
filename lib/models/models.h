@@ -35,9 +35,9 @@ typedef struct
     int transformationsNum;
 } Mesh;
 
-Mesh* createColoredMesh(uint16_t color);
-Mesh* createTexturedMesh(uint16_t *texture, int textureSize);
-Mesh* loadObjFile(Material *mat, char *filename);
+Mesh* createColoredMesh(uint16_t color, char *filename);
+Mesh* createTexturedMesh(uint16_t *texture, int textureSize, char *filename);
+Mesh* createMesh(Material *mat, char *filename);
 
 Mesh* createColoredCube(uint16_t color);
 Mesh* createTexturedCube(uint16_t *texture, int textureSize);

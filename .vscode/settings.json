@@ -62,6 +62,7 @@
         "fpa.h": "c",
         "cstdint": "c",
         "ff.h": "c",
-        "dma.h": "c"
+        "dma.h": "c",
+        "sd_reader.h": "c"
     }
 }

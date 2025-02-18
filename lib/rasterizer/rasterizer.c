@@ -388,6 +388,7 @@ void draw_model(Mesh *mesh, PointLight *pLight)
 
     for (uint16_t i = 0; i < mesh->facesCounter * 3; i += 3)
     {
+        uint16_t test[3]={mesh->uv[i],mesh->uv[i + 1],mesh->uv[i + 2]};
         uint16_t a = mesh->faces[i];
         uint16_t b = mesh->faces[i + 1];
         uint16_t c = mesh->faces[i + 2];

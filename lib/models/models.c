@@ -1,22 +1,62 @@
-#include "ff.h"
 #include "fpa.h"
 #include "models.h"
+#include "sd_reader.h"
 #include <stdlib.h>
 
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-// Mesh* createColoredMesh(uint16_t color)
-// {
+Mesh *createColoredMesh(uint16_t color, char *filename)
+{
+    Material *material = (Material *)malloc(sizeof(Material));
+    material->diffuse = color;
+    material->texture = 0;
+    material->textureSize = 0;
+    return createMesh(material, filename);
+}
 
-// }
-// Mesh* createTexturedMesh(uint16_t *texture, int textureSize)
-// {
+Mesh *createTexturedMesh(uint16_t *texture, int textureSize, char *filename)
+{
+    Material *material = (Material *)malloc(sizeof(Material));
+    material->diffuse = 0;
+    material->texture = texture;
+    material->textureSize = textureSize;
+    return createMesh(material, filename);
+}
 
-// }
-// Mesh* loadObjFile(Material *mat, char *filename)
-// {
-//     //FRESULT fr =
-// }
+Mesh *createMesh(Material *mat, char *filename)
+{
+    LoadedObj *obj = loadObjFile(filename);
+    Mesh *mesh = (Mesh *)malloc(sizeof(Mesh));
+
+    mesh->verticesCounter = obj->verticesCounter;
+    mesh->facesCounter = obj->facesCounter;
+    mesh->vertices = (int32_t *)malloc(sizeof(int32_t) * obj->verticesCounter*3);
+    mesh->faces = (uint16_t *)malloc(sizeof(uint16_t) * obj->facesCounter*3);
+    mesh->textureCoords = (int32_t *)malloc(sizeof(int32_t) * obj->textureCoordsCounter*2);
+    mesh->uv = (uint16_t *)malloc(sizeof(uint16_t) * obj->facesCounter*3);
+    mesh->mat = mat;
+    mesh->transformations = NULL;
+    mesh->transformationsNum = 0;
+
+    for(uint16_t i=0;i<obj->facesCounter*3;i++)
+    {
+        mesh->faces[i]=obj->faces[i];
+        mesh->uv[i]=obj->uv[i];
+    }
+
+    for(uint16_t i=0;i<obj->verticesCounter*3;i++)
+    {
+        mesh->vertices[i]=obj->vertices[i];
+    }
+
+    for(uint16_t i=0;i<obj->textureCoordsCounter*2;i++)
+    {
+        mesh->textureCoords[i]=obj->textureCoords[i];
+    }
+
+    free(obj);
+    return mesh;
+}
 
 Mesh *createColoredCube(uint16_t color)
 {
