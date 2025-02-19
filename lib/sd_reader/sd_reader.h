@@ -14,4 +14,5 @@ typedef struct
 uint8_t readline(uint8_t * line,uint8_t length,FIL * file);
 void clearLine(uint8_t * line, uint8_t length);
 void sdInit();
+void sdClose();
 LoadedObj * loadObjFile(char * file_name);

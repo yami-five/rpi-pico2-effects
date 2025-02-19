@@ -58,7 +58,7 @@
 #define LCD_SDA_PIN  6
 
 // #define TE_PIN 14
-
+#define LED_PIN         25
 #define LCD_RST_PIN		15	
 #define LCD_DC_PIN		8
 #define LCD_CS_PIN		9

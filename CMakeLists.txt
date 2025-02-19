@@ -27,6 +27,7 @@ if (EXISTS ${picoVscode})
 endif()
 # ====================================================================================
 set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_OSCX_STARTUP_DELAY_MULTIPLIER 128)
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -48,6 +49,7 @@ add_subdirectory(lib/fpa)
 add_subdirectory(lib/fatfs)
 add_subdirectory(lib/sd_reader)
 add_subdirectory(lib/sd_driver)
+add_subdirectory(lib/blink)
 include_directories(./lib/Config)
 include_directories(./lib/effects)
 include_directories(./lib/rasterizer)
@@ -59,6 +61,7 @@ include_directories(./lib/fpa)
 include_directories(./lib/fatfs)
 include_directories(./lib/sd_reader)
 include_directories(./lib/sd_driver)
+include_directories(./lib/blink)
 
 
 add_executable(demo demo.c )
@@ -93,6 +96,12 @@ target_link_libraries(demo
         fatfs
         sd_reader
         sd_driver
+        blink
         )
+
+# target_compile_definitions(demo
+#     PUBLIC
+#     PICO_OSCX_STARTUP_DELAY_MULTIPLIER=128
+# )
 
 pico_add_extra_outputs(demo)

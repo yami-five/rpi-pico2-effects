@@ -144,6 +144,8 @@ void te_callback(uint gpio, uint32_t events)
 
 void DEV_GPIO_Init(void)
 {
+    DEV_GPIO_Mode(LED_PIN, GPIO_OUT);
+
     DEV_GPIO_Mode(LCD_RST_PIN, GPIO_OUT);
     DEV_GPIO_Mode(LCD_DC_PIN, GPIO_OUT);
     DEV_GPIO_Mode(LCD_BL_PIN, GPIO_OUT);

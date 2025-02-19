@@ -377,7 +377,7 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        z += (10 * SCALE_FACTOR);
+        z += (5*SCALE_FACTOR);
         x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
         y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
         verticesOnScreen[vsc] = x / SCALE_FACTOR;

@@ -3,6 +3,7 @@
 #include "DEV_Config.h"
 #include "sd_reader.h"
 #include <stdlib.h>
+#include "blink.h"
 
 FRESULT f_res;
 FATFS microSDFatFs;
@@ -13,7 +14,9 @@ uint8_t readline(uint8_t *line, uint8_t length, FIL *file)
 	uint8_t lineBuffer[1];
 	f_read(file, lineBuffer, 1, &br);
 	if (f_eof(file))
+	{
 		return 1;
+	}
 	line[0] = lineBuffer[0];
 	uint8_t counter = 1;
 	while ((lineBuffer[0] != '\n') && (counter < length - 1))
@@ -52,6 +55,11 @@ void sdInit()
 	}
 }
 
+void sdClose()
+{
+	f_unmount((TCHAR const *)"/");
+}
+
 LoadedObj *loadObjFile(char *file_name)
 {
 	FIL file;
@@ -72,6 +80,7 @@ LoadedObj *loadObjFile(char *file_name)
 	obj->verticesCounter = 0;
 	obj->textureCoords = (uint32_t *)malloc(sizeof(uint32_t) * 0);
 	obj->uv = (uint16_t *)malloc(sizeof(uint16_t) * 0);
+	obj->textureCoordsCounter=0;
 	clearLine(&line, linelength);
 
 	while (!readline(&line, linelength, &file))
@@ -102,7 +111,7 @@ LoadedObj *loadObjFile(char *file_name)
 			uint16_t f[3], vt[3], vn[3];
 			int result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d", &f[0], &vt[0], &vn[0], &f[1], &vt[1], &vn[1], &f[2], &vt[2], &vn[2]);
 			obj->facesCounter++;
-			uint16_t *temp1 = realloc(obj->faces, obj->facesCounter * 3 * sizeof(uint32_t));
+			uint16_t *temp1 = realloc(obj->faces, obj->facesCounter * 3 * sizeof(uint16_t));
 			obj->faces = temp1;
 			obj->faces[(obj->facesCounter - 1) * 3] = (f[2] - 1);
 			obj->faces[(obj->facesCounter - 1) * 3 + 1] = (f[1] - 1);
@@ -116,5 +125,6 @@ LoadedObj *loadObjFile(char *file_name)
 		clearLine(&line, linelength);
 	}
 	f_close(&file);
+
 	return obj;
 }

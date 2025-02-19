@@ -2,6 +2,7 @@
 #include "models.h"
 #include "sd_reader.h"
 #include <stdlib.h>
+#include "blink.h"
 
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 
@@ -27,7 +28,6 @@ Mesh *createMesh(Material *mat, char *filename)
 {
     LoadedObj *obj = loadObjFile(filename);
     Mesh *mesh = (Mesh *)malloc(sizeof(Mesh));
-
     mesh->verticesCounter = obj->verticesCounter;
     mesh->facesCounter = obj->facesCounter;
     mesh->vertices = (int32_t *)malloc(sizeof(int32_t) * obj->verticesCounter*3);

@@ -8,6 +8,7 @@
 #include "fpa.h"
 #include "sd_reader.h"
 #include "pico/stdlib.h"
+#include "blink.h"
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320
@@ -29,18 +30,19 @@ int main(void)
     /* LCD Init */
     init_lcd(0);
     sdInit();
-    Mesh *mesh = createColoredMesh(0xffff, "cube.obj");
-    mesh->transformations = addTransformation(mesh->transformations, &mesh->transformationsNum, 0, 0, 0, 0);
 
     init_dma();
     set_windows(0, 0, HEIGHT_DISPLAY, WIDTH_DISPLAY);
     clear_buffer();
     draw_buffer(0);
 
+    
+
     // init_fire();
     uint32_t t = 0;
     // init_sin_lut();
-
+    Mesh *mesh = createColoredMesh(0xffff, "cube.obj");
+    mesh->transformations = addTransformation(mesh->transformations, &mesh->transformationsNum, 0, 0, 0, 0);
     // Mesh *cubeColored = createColoredCube(0xffff);
     // Mesh *cubeTextured1 = createTexturedCube(wall_texture, 32);
     // Mesh *cubeTextured2 = createTexturedCube(box_texture, 32);
@@ -101,5 +103,10 @@ int main(void)
         // int64_t elapsed_us = absolute_time_diff_us(start,end);
         t++;
     }
+    free(mesh);
+    free(lightWhite);
+    free(lightBlue);
+    free(lightGreen);
+    free(lightRed);
     return 0;
 }
