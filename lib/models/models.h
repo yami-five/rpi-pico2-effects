@@ -1,4 +1,5 @@
 #include <stdint.h>
+
 #ifndef MODELS_H
 #define MODELS_H
 

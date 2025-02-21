@@ -9,6 +9,7 @@
 #include "sd_reader.h"
 #include "pico/stdlib.h"
 #include "blink.h"
+#include <stdlib.h>
 
 #define FOCAL_LENGTH 90
 #define WIDTH_DISPLAY 320

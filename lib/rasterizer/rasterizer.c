@@ -5,19 +5,21 @@
 #include "painter.h"
 #include "rasterizer.h"
 #include "fpa.h"
+#include "vectors.h"
 
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#define SCALE 2
 #define FOCAL_LENGTH 90
-#define WIDTH_DISPLAY 320/2
-#define HEIGHT_DISPLAY 240/2
-#define WIDTH_DOUBLED 640/2
-#define HEIGHT_DOUBLED 480/2
+#define WIDTH_DISPLAY 320 / SCALE
+#define HEIGHT_DISPLAY 240 / SCALE
+#define WIDTH_DOUBLED 640 / SCALE
+#define HEIGHT_DOUBLED 480 / SCALE
 #define ARRAY_SIZE 153600
-#define WIDTH_HALF 160/2
-#define HEIGHT_HALF 120/2
+#define WIDTH_HALF 160 / SCALE
+#define HEIGHT_HALF 120 / SCALE
 #define FIRE_FLOOR_ADR 76480
 #define FIXED_FOCAL_LENGTH 90 * SCALE_FACTOR
 #define TRIANGLE_CENTER_DIVIDER 3 * SCALE_FACTOR
@@ -35,23 +37,11 @@ PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color)
     return light;
 }
 
-int32_t vector3_length(int32_t *vector)
-{
-    return fastSqrt(fixedPow(vector[0]) + fixedPow(vector[1]) + fixedPow(vector[2]));
-}
-
-void normalize_vector(int32_t *vector3)
-{
-    int32_t vectorLength = vector3_length(vector3);
-    for (uint8_t i = 0; i < 3; i++)
-        vector3[i] = fixedDiv(vector3[i], vectorLength);
-}
-
 void triangle_center(Triangle3D *triangle, int32_t *center)
 {
     center[0] = fixedDiv((triangle->a.x + triangle->b.x + triangle->c.x), TRIANGLE_CENTER_DIVIDER);
     center[1] = fixedDiv((triangle->a.y + triangle->b.y + triangle->c.y), TRIANGLE_CENTER_DIVIDER);
-    center[2] = fixedDiv((triangle->c.z + triangle->b.z + triangle->c.z), TRIANGLE_CENTER_DIVIDER);
+    center[2] = fixedDiv((triangle->a.z + triangle->b.z + triangle->c.z), TRIANGLE_CENTER_DIVIDER);
 }
 
 void transform(int32_t *x, int32_t *y, int32_t *z, TransformInfo *transformInfo)
@@ -187,10 +177,6 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
 {
     if (y < 0 || y >= HEIGHT_DISPLAY)
         return;
-    // if (drawOddLines==0 && y%2==0)
-    //     return;
-    // if (drawOddLines==1 && y%2!=0)
-    //     return;
     int n = (y % 2) / 2;
     x0 += n;
     x1 += n;
@@ -207,8 +193,6 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
         x0 = 0;
     if (x1 > WIDTH_DISPLAY)
         x1 = WIDTH_DISPLAY;
-    // x0 = x0 >> 1;
-    // x1 = x1 >> 1;
     for (int x = x0; x < x1; x++)
     {
         uint16_t color = 0;
@@ -218,10 +202,10 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
             color = texturing(triangle, mat, divider, x, y);
         if (SHADING_ENABLED)
             shading(&color, lightDistance, light);
-        draw_pixel(x*2, y*2, color);
-        draw_pixel(x*2+1, y*2, color);
-        draw_pixel(x*2, y*2+1, color);
-        draw_pixel(x*2+1, y*2+1, color);
+        draw_pixel(x * 2, y * 2, color);
+        draw_pixel(x * 2 + 1, y * 2, color);
+        draw_pixel(x * 2, y * 2 + 1, color);
+        draw_pixel(x * 2 + 1, y * 2 + 1, color);
     }
 }
 
@@ -377,7 +361,7 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        z += (5*SCALE_FACTOR);
+        z += (5 * SCALE_FACTOR);
         x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
         y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
         verticesOnScreen[vsc] = x / SCALE_FACTOR;
@@ -385,10 +369,12 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         vsc += 2;
     }
     // flat shading
-
+    Vector3 *normalVector = (Vector3 *)malloc(sizeof(Vector3));
+    Vector3 *lightDirection = (Vector3 *)malloc(sizeof(Vector3)); 
+    Vector3 *lmn = (Vector3 *)malloc(sizeof(Vector3));    
     for (uint16_t i = 0; i < mesh->facesCounter * 3; i += 3)
     {
-        uint16_t test[3]={mesh->uv[i],mesh->uv[i + 1],mesh->uv[i + 2]};
+        uint16_t test[3] = {mesh->uv[i], mesh->uv[i + 1], mesh->uv[i + 2]};
         uint16_t a = mesh->faces[i];
         uint16_t b = mesh->faces[i + 1];
         uint16_t c = mesh->faces[i + 2];
@@ -421,13 +407,11 @@ void draw_model(Mesh *mesh, PointLight *pLight)
             int32_t xac = verticesModified[c * 3] - verticesModified[a * 3];
             int32_t yac = verticesModified[c * 3 + 1] - verticesModified[a * 3 + 1];
             int32_t zac = verticesModified[c * 3 + 2] - verticesModified[a * 3 + 2];
-            int32_t normalVector[3] =
-                {
-                    (fixedMul(yab, zac) - fixedMul(zab, yac)),
-                    (fixedMul(zab, xac) - fixedMul(xab, zac)),
-                    (fixedMul(xab, yac) - fixedMul(yab, xac))};
-            normalize_vector(normalVector);
-            int32_t normalVectorLength = vector3_length(normalVector);
+            normalVector->x = (fixedMul(yab, zac) - fixedMul(zab, yac)),
+            normalVector->y = (fixedMul(zab, xac) - fixedMul(xab, zac));
+            normalVector->z = (fixedMul(xab, yac) - fixedMul(yab, xac));
+            normVector(normalVector);
+            int32_t normalVectorLength = lenVector(normalVector);
             // light direction
             Triangle3D triangle3D = {
                 {verticesModified[a * 3],
@@ -441,21 +425,13 @@ void draw_model(Mesh *mesh, PointLight *pLight)
                  verticesModified[c * 3 + 2]}};
             int32_t center[3];
             triangle_center(&triangle3D, center);
-            int32_t lightDirection[3] =
-                {
-                    pLight->position.x - center[0],
-                    pLight->position.y - center[1],
-                    pLight->position.z - center[2]
-                };
-            int32_t lightLength = vector3_length(lightDirection);
+            lightDirection->x=pLight->position.x - center[0];
+            lightDirection->y=pLight->position.y - center[1];
+            lightDirection->z=pLight->position.z - center[2];
+            int32_t lightLength = lenVector(lightDirection);
             // light distance
-            int32_t vector[3] =
-                {
-                    lightDirection[0] - normalVector[0],
-                    lightDirection[1] - normalVector[1],
-                    lightDirection[2] - normalVector[2]
-                };
-            int64_t lightDirectionMinusNormalVector = vector3_length(vector);
+            lmn=subVectors(lightDirection, normalVector);
+            int64_t lightDirectionMinusNormalVector = lenVector(lmn);
             int32_t x = fixedPow(normalVectorLength) + fixedPow(lightLength) - fixedPow(lightDirectionMinusNormalVector);
             int32_t y = fixedMul(lightLength, normalVectorLength) * 2;
             lightDistance = fixedDiv(x, y);
@@ -467,4 +443,7 @@ void draw_model(Mesh *mesh, PointLight *pLight)
 
         tri(&triangle, mesh->mat, lightDistance, pLight);
     }
+    free(normalVector);
+    free(lightDirection);
+    free(lmn);
 }

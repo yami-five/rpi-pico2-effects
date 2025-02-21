@@ -45,7 +45,7 @@ add_subdirectory(lib/painter)
 add_subdirectory(lib/lcd)
 add_subdirectory(lib/models)
 add_subdirectory(lib/gfx)
-add_subdirectory(lib/fpa)
+add_subdirectory(lib/arithmetics)
 add_subdirectory(lib/fatfs)
 add_subdirectory(lib/sd_reader)
 add_subdirectory(lib/sd_driver)
@@ -57,7 +57,7 @@ include_directories(./lib/painter)
 include_directories(./lib/lcd)
 include_directories(./lib/models)
 include_directories(./lib/gfx)
-include_directories(./lib/fpa)
+include_directories(./lib/arithmetics)
 include_directories(./lib/fatfs)
 include_directories(./lib/sd_reader)
 include_directories(./lib/sd_driver)
@@ -92,7 +92,7 @@ target_link_libraries(demo
         lcd
         models
         gfx
-        fpa
+        arithmetics
         fatfs
         sd_reader
         sd_driver

@@ -103,22 +103,9 @@ int32_t fastSqrt(int64_t value)
             res = (res >> 1) + bit;
         }
         else
-            res>>=1;
-        bit>>=2;
+            res >>= 1;
+        bit >>= 2;
     }
 
     return (int32_t)res;
-    // int64_t x = value;
-    // int64_t result = value;
-    // int64_t oldResult=0;
-    // uint8_t i=0;
-    // while(result!=oldResult)
-    // {
-    //     oldResult=result;
-    //     result = (result + fixedDiv(x, result)) >> 1;
-    //     i++;
-    //     if(i==9)
-    //         break;
-    // }
-    // return result;
 }

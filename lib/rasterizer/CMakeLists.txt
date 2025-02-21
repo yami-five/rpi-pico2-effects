@@ -6,7 +6,7 @@ include_directories(../Config)
 include_directories(../effects)
 include_directories(../models)
 include_directories(../painter)
-include_directories(../fpa)
+include_directories(../arithmetics)
 
 target_link_libraries(rasterizer PUBLIC 
     effects
@@ -16,5 +16,5 @@ target_link_libraries(rasterizer PUBLIC
     pico_rand
     pico_multicore
     Config
-    fpa
+    arithmetics
 )

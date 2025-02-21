@@ -1,45 +1,33 @@
 #include "models.h"
+#include "vectors.h"
 
 typedef struct
 {
-    int32_t x;
-    int32_t y;
-    int32_t z;
-} Vertex3D;
-
-typedef struct
-{
-    int32_t x;
-    int32_t y;
-} Vertex2D;
-
-typedef struct
-{
-    Vertex2D a;
-    Vertex2D b;
-    Vertex2D c;
-    Vertex2D uvA;
-    Vertex2D uvB;
-    Vertex2D uvC;
+    Vector2 a;
+    Vector2 b;
+    Vector2 c;
+    Vector2 uvA;
+    Vector2 uvB;
+    Vector2 uvC;
 } Triangle2D;
 
 typedef struct
 {
-    Vertex3D a;
-    Vertex3D b;
-    Vertex3D c;
+    Vector3 a;
+    Vector3 b;
+    Vector3 c;
 } Triangle3D;
 
 typedef struct
 {
-    Vertex3D position;
+    Vector3 position;
     uint32_t intensity;
     uint16_t color;
 } PointLight;
 
 PointLight *createLight(int x, int y, int z, uint8_t intensity, uint16_t color);
-int32_t vector3_length(int32_t *vector3);
-void normalize_vector(int32_t *vector3);
+// int32_t vector3_length(int32_t *vector3);
+// void normalize_vector(int32_t *vector3);
 void triangle_center(Triangle3D *triangle, int32_t *center);
 void transform(int32_t *x, int32_t *y, int32_t *z, TransformInfo *transformInfo);
 void rotate(int32_t *x, int32_t *y, int32_t *z, TransformVector * TransformVector);
