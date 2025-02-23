@@ -1,4 +1,3 @@
-
 #include "DEV_Config.h"
 #include "effects.h"
 #include "models.h"
@@ -6,7 +5,7 @@
 #include "rasterizer.h"
 #include "fpa.h"
 #include "vectors.h"
-
+#include "camera.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -206,6 +205,7 @@ void rasterize(int y, int x0, int x1, Triangle2D *triangle, Material *mat, int32
         draw_pixel(x * 2 + 1, y * 2, color);
         draw_pixel(x * 2, y * 2 + 1, color);
         draw_pixel(x * 2 + 1, y * 2 + 1, color);
+        // draw_pixel(x, y, color);
     }
 }
 
@@ -341,7 +341,7 @@ void tri(Triangle2D *triangle, Material *mat, int32_t lightDistance, PointLight 
     }
 }
 
-void draw_model(Mesh *mesh, PointLight *pLight)
+void draw_model(Mesh *mesh, PointLight *pLight, Camera *camera)
 {
     uint16_t verticesCounter = mesh->verticesCounter;
     int verticesModified[verticesCounter * 3];
@@ -361,17 +361,23 @@ void draw_model(Mesh *mesh, PointLight *pLight)
         verticesModified[i] = x;
         verticesModified[i + 1] = y;
         verticesModified[i + 2] = z;
-        z += (5 * SCALE_FACTOR);
-        x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
-        y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
-        verticesOnScreen[vsc] = x / SCALE_FACTOR;
-        verticesOnScreen[vsc + 1] = y / SCALE_FACTOR;
+        int32_t w = SCALE_FACTOR;
+        z -= (5 * SCALE_FACTOR * 5);
+        fixedMulMatrixVector(&x, &y, &z, &w, camera->vMatrix);
+        fixedMulMatrixVector(&x, &y, &z, &w, camera->pMatrix);
+        // z += (5 * SCALE_FACTOR);
+        // x = (x * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * WIDTH_HALF);
+        // y = (y * FIXED_FOCAL_LENGTH / z) + (SCALE_FACTOR * HEIGHT_HALF);
+        // verticesOnScreen[vsc] = x / SCALE_FACTOR;
+        // verticesOnScreen[vsc + 1] = y / SCALE_FACTOR;
+        verticesOnScreen[vsc] = fixedDiv(x, w) + WIDTH_HALF;
+        verticesOnScreen[vsc + 1] = fixedDiv(y, w) + HEIGHT_HALF;
         vsc += 2;
     }
     // flat shading
     Vector3 *normalVector = (Vector3 *)malloc(sizeof(Vector3));
-    Vector3 *lightDirection = (Vector3 *)malloc(sizeof(Vector3)); 
-    Vector3 *lmn = (Vector3 *)malloc(sizeof(Vector3));    
+    Vector3 *lightDirection = (Vector3 *)malloc(sizeof(Vector3));
+    Vector3 *lmn = (Vector3 *)malloc(sizeof(Vector3));
     for (uint16_t i = 0; i < mesh->facesCounter * 3; i += 3)
     {
         uint16_t test[3] = {mesh->uv[i], mesh->uv[i + 1], mesh->uv[i + 2]};
@@ -425,12 +431,12 @@ void draw_model(Mesh *mesh, PointLight *pLight)
                  verticesModified[c * 3 + 2]}};
             int32_t center[3];
             triangle_center(&triangle3D, center);
-            lightDirection->x=pLight->position.x - center[0];
-            lightDirection->y=pLight->position.y - center[1];
-            lightDirection->z=pLight->position.z - center[2];
+            lightDirection->x = pLight->position.x - center[0];
+            lightDirection->y = pLight->position.y - center[1];
+            lightDirection->z = pLight->position.z - center[2];
             int32_t lightLength = lenVector(lightDirection);
             // light distance
-            lmn=subVectors(lightDirection, normalVector);
+            lmn = subVectors(lightDirection, normalVector);
             int64_t lightDirectionMinusNormalVector = lenVector(lmn);
             int32_t x = fixedPow(normalVectorLength) + fixedPow(lightLength) - fixedPow(lightDirectionMinusNormalVector);
             int32_t y = fixedMul(lightLength, normalVectorLength) * 2;

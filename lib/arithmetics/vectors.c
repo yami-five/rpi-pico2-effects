@@ -38,21 +38,20 @@ void normVector(Vector3 *vec)
     vec->z = fixedDiv(vec->z, len);
 }
 
-void fixedMulMatrixVector(int32_t x, int32_t y, int32_t z, int32_t w, int32_t *matrix)
+void fixedMulMatrixVector(int32_t *x, int32_t *y, int32_t *z, int32_t *w, int32_t *matrix)
 {
     int32_t resultX = 0;
     int32_t resultY = 0;
     int32_t resultZ = 0;
     int32_t resultW = 0;
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        resultX += fixedMul(matrix[i], x);
-        resultY += fixedMul(matrix[i + 4], y);
-        resultZ += fixedMul(matrix[i + 8], z);
-        resultW += fixedMul(matrix[i + 12], w);
-    }
-    x = resultX;
-    y = resultY;
-    z = resultZ;
-    w = resultW;
+
+    resultX+=fixedMul(*x,matrix[0])+fixedMul(*y,matrix[1])+fixedMul(*z,matrix[2])+fixedMul(*w,matrix[3]);
+    resultY+=fixedMul(*x,matrix[4])+fixedMul(*y,matrix[5])+fixedMul(*z,matrix[6])+fixedMul(*w,matrix[7]);
+    resultZ+=fixedMul(*x,matrix[8])+fixedMul(*y,matrix[9])+fixedMul(*z,matrix[10])+fixedMul(*w,matrix[11]);
+    resultW+=fixedMul(*x,matrix[12])+fixedMul(*y,matrix[13])+fixedMul(*z,matrix[14])+fixedMul(*w,matrix[15]);
+    
+    *x = resultX;
+    *y = resultY;
+    *z = resultZ;
+    *w = resultW;
 }

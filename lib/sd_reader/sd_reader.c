@@ -71,7 +71,7 @@ LoadedObj *loadObjFile(char *file_name)
 	}
 
 	uint8_t linelength = 32;
-	uint8_t line[linelength];
+	uint8_t* line=(uint8_t *)malloc(sizeof(uint8_t)*linelength);
 
 	LoadedObj *obj = (LoadedObj *)malloc(sizeof(LoadedObj));
 	obj->faces = (uint16_t *)malloc(sizeof(uint16_t) * 0);
@@ -81,9 +81,9 @@ LoadedObj *loadObjFile(char *file_name)
 	obj->textureCoords = (uint32_t *)malloc(sizeof(uint32_t) * 0);
 	obj->uv = (uint16_t *)malloc(sizeof(uint16_t) * 0);
 	obj->textureCoordsCounter=0;
-	clearLine(&line, linelength);
+	clearLine(line, linelength);
 
-	while (!readline(&line, linelength, &file))
+	while (!readline(line, linelength, &file))
 	{
 		if (line[0] == 'v' && line[1] == ' ')
 		{
@@ -113,18 +113,18 @@ LoadedObj *loadObjFile(char *file_name)
 			obj->facesCounter++;
 			uint16_t *temp1 = realloc(obj->faces, obj->facesCounter * 3 * sizeof(uint16_t));
 			obj->faces = temp1;
-			obj->faces[(obj->facesCounter - 1) * 3] = (f[2] - 1);
+			obj->faces[(obj->facesCounter - 1) * 3] = (f[0] - 1);
 			obj->faces[(obj->facesCounter - 1) * 3 + 1] = (f[1] - 1);
-			obj->faces[(obj->facesCounter - 1) * 3 + 2] = (f[0] - 1);
+			obj->faces[(obj->facesCounter - 1) * 3 + 2] = (f[2] - 1);
 			uint16_t *temp2 = realloc(obj->uv, obj->facesCounter * 3 * sizeof(uint16_t));
 			obj->uv = temp2;
-			obj->uv[(obj->facesCounter - 1) * 3] = (vt[2] - 1);
+			obj->uv[(obj->facesCounter - 1) * 3] = (vt[0] - 1);
 			obj->uv[(obj->facesCounter - 1) * 3 + 1] = (vt[1] - 1);
-			obj->uv[(obj->facesCounter - 1) * 3 + 2] = (vt[0] - 1);
+			obj->uv[(obj->facesCounter - 1) * 3 + 2] = (vt[2] - 1);
 		}
-		clearLine(&line, linelength);
+		clearLine(line, linelength);
 	}
 	f_close(&file);
-
+	free(line);
 	return obj;
 }

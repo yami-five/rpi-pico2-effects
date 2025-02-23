@@ -18,9 +18,9 @@ if(WIN32)
 else()
     set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.1.0)
-set(toolchainVersion 13_3_Rel1)
-set(picotoolVersion 2.1.0)
+set(sdkVersion 2.1.1)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.1.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
@@ -50,6 +50,7 @@ add_subdirectory(lib/fatfs)
 add_subdirectory(lib/sd_reader)
 add_subdirectory(lib/sd_driver)
 add_subdirectory(lib/blink)
+add_subdirectory(lib/camera)
 include_directories(./lib/Config)
 include_directories(./lib/effects)
 include_directories(./lib/rasterizer)
@@ -62,6 +63,7 @@ include_directories(./lib/fatfs)
 include_directories(./lib/sd_reader)
 include_directories(./lib/sd_driver)
 include_directories(./lib/blink)
+include_directories(./lib/camera)
 
 
 add_executable(demo demo.c )
@@ -97,6 +99,7 @@ target_link_libraries(demo
         sd_reader
         sd_driver
         blink
+        camera
         )
 
 # target_compile_definitions(demo

@@ -7,6 +7,7 @@ include_directories(../effects)
 include_directories(../models)
 include_directories(../painter)
 include_directories(../arithmetics)
+include_directories(../camera)
 
 target_link_libraries(rasterizer PUBLIC 
     effects
@@ -17,4 +18,5 @@ target_link_libraries(rasterizer PUBLIC
     pico_multicore
     Config
     arithmetics
+    camera
 )

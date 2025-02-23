@@ -9,6 +9,7 @@
 #include "sd_reader.h"
 #include "pico/stdlib.h"
 #include "blink.h"
+#include "camera.h"
 #include <stdlib.h>
 
 #define FOCAL_LENGTH 90
@@ -37,7 +38,10 @@ int main(void)
     clear_buffer();
     draw_buffer(0);
 
-    
+    Camera *camera = createCamera(
+        0, 0, floatToFixed(5.0f),
+        0, 0, 0,
+        0, floatToFixed(1.0f), 0);
 
     // init_fire();
     uint32_t t = 0;
@@ -98,7 +102,7 @@ int main(void)
         mesh->transformations[0].transformVector->x =
             mesh->transformations[0].transformVector->y =
                 mesh->transformations[0].transformVector->z = qt + SCALE_FACTOR;
-        draw_model(mesh, lightWhite);
+        draw_model(mesh, lightWhite, camera);
         draw_buffer();
         // absolute_time_t end = get_absolute_time();
         // int64_t elapsed_us = absolute_time_diff_us(start,end);

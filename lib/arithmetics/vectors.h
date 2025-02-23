@@ -29,6 +29,6 @@ Vector3 *mulVectors(Vector3 *vecA, Vector3 *vecB);
 int32_t mulVectorsScalar(Vector3 *vecA, Vector3 *vecB);
 int32_t lenVector(Vector3 *vec);
 void normVector(Vector3 *vec);
-void fixedMulMatrixVector(int32_t x, int32_t y, int32_t z, int32_t w, int32_t *matrix);
+void fixedMulMatrixVector(int32_t *x, int32_t *y, int32_t *z, int32_t *w, int32_t *matrix);
 
 #endif
