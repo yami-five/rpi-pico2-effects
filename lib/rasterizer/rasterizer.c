@@ -375,9 +375,12 @@ void draw_model(Mesh *mesh, PointLight *pLight, Camera *camera)
         vsc += 2;
     }
     // flat shading
-    Vector3 *normalVector = (Vector3 *)malloc(sizeof(Vector3));
-    Vector3 *lightDirection = (Vector3 *)malloc(sizeof(Vector3));
-    Vector3 *lmn = (Vector3 *)malloc(sizeof(Vector3));
+    Vector3 normalVector;
+    Vector3 lightDirection;
+    // Vector3 lmn;
+    // Vector3 *normalVector = (Vector3 *)malloc(sizeof(Vector3));
+    // Vector3 *lightDirection = (Vector3 *)malloc(sizeof(Vector3));
+    // Vector3 *lmn = (Vector3 *)malloc(sizeof(Vector3));
     for (uint16_t i = 0; i < mesh->facesCounter * 3; i += 3)
     {
         uint16_t test[3] = {mesh->uv[i], mesh->uv[i + 1], mesh->uv[i + 2]};
@@ -413,11 +416,11 @@ void draw_model(Mesh *mesh, PointLight *pLight, Camera *camera)
             int32_t xac = verticesModified[c * 3] - verticesModified[a * 3];
             int32_t yac = verticesModified[c * 3 + 1] - verticesModified[a * 3 + 1];
             int32_t zac = verticesModified[c * 3 + 2] - verticesModified[a * 3 + 2];
-            normalVector->x = (fixedMul(yab, zac) - fixedMul(zab, yac)),
-            normalVector->y = (fixedMul(zab, xac) - fixedMul(xab, zac));
-            normalVector->z = (fixedMul(xab, yac) - fixedMul(yab, xac));
-            normVector(normalVector);
-            int32_t normalVectorLength = lenVector(normalVector);
+            normalVector.x = (fixedMul(yab, zac) - fixedMul(zab, yac)),
+            normalVector.y = (fixedMul(zab, xac) - fixedMul(xab, zac));
+            normalVector.z = (fixedMul(xab, yac) - fixedMul(yab, xac));
+            normVector(&normalVector);
+            int32_t normalVectorLength = lenVector(&normalVector);
             // light direction
             Triangle3D triangle3D = {
                 {verticesModified[a * 3],
@@ -431,13 +434,14 @@ void draw_model(Mesh *mesh, PointLight *pLight, Camera *camera)
                  verticesModified[c * 3 + 2]}};
             int32_t center[3];
             triangle_center(&triangle3D, center);
-            lightDirection->x = pLight->position.x - center[0];
-            lightDirection->y = pLight->position.y - center[1];
-            lightDirection->z = pLight->position.z - center[2];
-            int32_t lightLength = lenVector(lightDirection);
+            lightDirection.x = pLight->position.x - center[0];
+            lightDirection.y = pLight->position.y - center[1];
+            lightDirection.z = pLight->position.z - center[2];
+            int32_t lightLength = lenVector(&lightDirection);
             // light distance
-            lmn = subVectors(lightDirection, normalVector);
+            Vector3 * lmn = subVectors(&lightDirection, &normalVector);
             int64_t lightDirectionMinusNormalVector = lenVector(lmn);
+            free(lmn);
             int32_t x = fixedPow(normalVectorLength) + fixedPow(lightLength) - fixedPow(lightDirectionMinusNormalVector);
             int32_t y = fixedMul(lightLength, normalVectorLength) * 2;
             lightDistance = fixedDiv(x, y);
@@ -449,7 +453,7 @@ void draw_model(Mesh *mesh, PointLight *pLight, Camera *camera)
 
         tri(&triangle, mesh->mat, lightDistance, pLight);
     }
-    free(normalVector);
-    free(lightDirection);
-    free(lmn);
+    // free(normalVector);
+    // free(lightDirection);
+    // free(lmn);
 }

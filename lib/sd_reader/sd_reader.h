@@ -11,8 +11,17 @@ typedef struct
     uint16_t *uv;
 } LoadedObj;
 
-uint8_t readline(uint8_t * line,uint8_t length,FIL * file);
-void clearLine(uint8_t * line, uint8_t length);
+typedef struct
+{
+    uint16_t sizeX;
+    uint16_t sizeY;
+    uint16_t *pixels;
+} LoadedBmp;
+
+uint8_t readline(uint8_t *line, uint8_t length, FIL *file);
+void clearLine(uint8_t *line, uint8_t length);
 void sdInit();
 void sdClose();
-LoadedObj * loadObjFile(char * file_name);
+LoadedObj *loadObjFile(char *file_name);
+LoadedBmp *loadBmpFile(char *file_name);
+void drawBmpFilePerLine(char *file_name);

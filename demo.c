@@ -38,6 +38,8 @@ int main(void)
     clear_buffer();
     draw_buffer(0);
 
+    // LoadedBmp *bmp1 = loadBmpFile("sl_w_p.bmp");
+
     Camera *camera = createCamera(
         0, 0, floatToFixed(5.0f),
         0, 0, 0,
@@ -46,7 +48,7 @@ int main(void)
     // init_fire();
     uint32_t t = 0;
     // init_sin_lut();
-    Mesh *mesh = createColoredMesh(0xffff, "cube.obj");
+    Mesh *mesh = createColoredMesh(0xffff, "sword.obj");
     mesh->transformations = addTransformation(mesh->transformations, &mesh->transformationsNum, 0, 0, 0, 0);
     // Mesh *cubeColored = createColoredCube(0xffff);
     // Mesh *cubeTextured1 = createTexturedCube(wall_texture, 32);
@@ -103,6 +105,7 @@ int main(void)
             mesh->transformations[0].transformVector->y =
                 mesh->transformations[0].transformVector->z = qt + SCALE_FACTOR;
         draw_model(mesh, lightWhite, camera);
+        // drawBmpFilePerLine("sl_w_p.bmp");
         draw_buffer();
         // absolute_time_t end = get_absolute_time();
         // int64_t elapsed_us = absolute_time_diff_us(start,end);
