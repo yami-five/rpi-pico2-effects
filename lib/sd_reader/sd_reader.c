@@ -159,7 +159,17 @@ LoadedBmp *loadBmpFile(char *file_name)
 	f_lseek(&file, pixelArrayOffset[0]);
 	uint32_t pixelsNum = bmp->sizeX * bmp->sizeY;
 	bmp->pixels = (uint16_t *)malloc(sizeof(uint16_t) * pixelsNum);
-	f_read(&file, bmp->pixels, pixelsNum, &br);
+	for (uint16_t i = 0; i<pixelsNum; i++)
+	{
+		uint16_t buf[1];
+		f_read(&file, buf, pixelsNum, &br);
+		uint16_t color = buf[0];
+		uint8_t r = (color >> 11) & 0x1f;
+		uint8_t g = (color >> 5) & 0x3f;
+		uint8_t b = color & 0x1f;
+		color = (r << 12) | (g << 6) | b;
+		bmp->pixels[i]=color;
+	}
 	f_close(&file);
 	return bmp;
 }
@@ -187,13 +197,10 @@ void drawBmpFilePerLine(char *file_name)
 		{
 			f_read(&file, buf, 2, &br);
 			uint16_t color = buf[0];
-			uint16_t fixedColor = ((color & 0xF800) >> 11) |
-                      ((color & 0x07E0))      |
-                      ((color & 0x001F) << 11); 
-			// uint8_t b = color & 0x1f;
-			// uint8_t g = (color >> 5) & 0x3f;
-			// uint8_t r = (color >> 11) & 0x1f;
-			// color = (r << 11) | (g << 5) | b;
+			uint8_t r = (color >> 11) & 0x1f;
+			uint8_t g = (color >> 5) & 0x3f;
+			uint8_t b = color & 0x1f;
+			color = (r << 12) | (g << 6) | b;
 			draw_pixel(x, y, color);
 		}
 	}

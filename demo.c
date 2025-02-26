@@ -104,8 +104,8 @@ int main(void)
         mesh->transformations[0].transformVector->x =
             mesh->transformations[0].transformVector->y =
                 mesh->transformations[0].transformVector->z = qt + SCALE_FACTOR;
-        draw_model(mesh, lightWhite, camera);
-        // drawBmpFilePerLine("sl_w_p.bmp");
+        // draw_model(mesh, lightWhite, camera);
+        drawBmpFilePerLine("sl_w_p.bmp");
         draw_buffer();
         // absolute_time_t end = get_absolute_time();
         // int64_t elapsed_us = absolute_time_diff_us(start,end);
